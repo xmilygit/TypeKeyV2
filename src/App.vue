@@ -100,6 +100,9 @@ export default {
       this.countTime = "开  始";
       this.modalshow = false;
       this.result = 0;
+      for (var i = 0; i < this.$refs.keyStyle.length; i++) {
+        this.$refs.keyStyle[i].className = "btn keybutton btn-secondary";
+      }
     },
     training(traiStr) {
       console.log(this);
@@ -119,18 +122,10 @@ export default {
         tempstr = tempstr + " ";
       }
       this.typeKeys = tempstr;
-      /*
-      var index = 0;
-      for (var i = begin; i < end; i++) {
-        if (i < str.length) {
-          this.$refs.keys[index].innerText = str[i].toUpperCase();
-        } else {
-          this.$refs.keys[index].innerText = "";
-        }
-        this.$refs.keyStyle[index].className = "btn keybutton btn-secondary";
-        index++;
+      
+      for (var i = 0; i < this.$refs.keyStyle.length; i++) {
+        this.$refs.keyStyle[i].className = "btn keybutton btn-secondary";
       }
-      */
     },
     whenKeyPress(e) {
       if (!time_begin) return;
