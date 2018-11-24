@@ -1,41 +1,8 @@
 <template>
   <div id="app">
-    <b-navbar toggleable="md" type="dark" variant="info">
-      <b-navbar-toggle target="nav_collapse"></b-navbar-toggle>
-      <b-navbar-brand href="#">键盘指法练习</b-navbar-brand>
-    <b-collapse is-nav id="nav_collapse">
+    <mynavbar></mynavbar>
+    <b-alert show>Default Alert</b-alert>
 
-    <b-navbar-nav>
-      <b-nav-item href="#">Link</b-nav-item>
-      <b-nav-item href="#">Disabled</b-nav-item>
-    </b-navbar-nav>
-
-    <!-- Right aligned nav items -->
-    <b-navbar-nav class="ml-auto">
-      <b-nav-item-dropdown text="课程选择" right>
-        <b-dropdown-item href="#">EN</b-dropdown-item>
-        <b-dropdown-item href="#">ES</b-dropdown-item>
-        <b-dropdown-item href="#">RU</b-dropdown-item>
-        <b-dropdown-item href="#">FA</b-dropdown-item>
-      </b-nav-item-dropdown>
-
-  
-      <b-nav-form v-if="!login"> 
-        <b-form-input size="sm" class="mr-sm-2" type="text" placeholder="用户名"/>
-        <b-form-input size="sm" class="mr-sm-2" type="text" placeholder="密码"/>
-        <b-button size="sm" class="my-2 my-sm-0" type="submit">登录</b-button>
-      </b-nav-form>
-      <b-nav-item-dropdown right v-else>
-        <!-- Using button-content slot -->
-        <template slot="button-content">
-          <em>User</em>
-        </template>
-        <b-dropdown-item href="#">Profile</b-dropdown-item>
-        <b-dropdown-item href="#">Signout</b-dropdown-item>
-      </b-nav-item-dropdown>
-    </b-navbar-nav>
-    </b-collapse>
-  </b-navbar>
   <b-modal id="modal1" title="练习成绩" v-model="modalshow" cancel-title="取消"	ok-title="确定" @ok="gotoReady">
     <p class="my-4">本次练习综合成绩为：{{result}}</p>
   </b-modal>
@@ -73,6 +40,7 @@
 </template>
 
 <script>
+import mynavbar from './components/mynavbar.vue'
 var begin = 0;
 var end = 12;
 var str =
@@ -96,8 +64,11 @@ export default {
       countTime: "开  始",
       modalshow: false,
       result: 0,
-      login:false,
+      // login:false,
     };
+  },
+  components:{
+    mynavbar
   },
   computed: {
     rightRate: function() {
