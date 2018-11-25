@@ -55,7 +55,8 @@ export default {
       loading: false,
       userinfo: {
         username: "",
-        password: ""
+        password: "",
+        id:""
       },
       logintip: {
         status: false,
@@ -75,6 +76,7 @@ export default {
           if (res.data.signin) {
             console.log(res.data);
             self.userinfo.username = res.data.userinfo.username;
+            self.userinfo.id=res.data.userinfo.id;
             self.login = true;
             return;
           } else {
@@ -84,6 +86,11 @@ export default {
         .catch(function(error) {
           self.login = false;
         });
+    }
+  },
+  watch:{
+    login:function(){
+      this.$emit('loginevent',this.login)
     }
   },
   methods: {
@@ -107,6 +114,7 @@ export default {
           }
           sessionStorage.setItem("token", res.data.token);
           self.login = true;
+          selft.userinfo=res.data.userinfo;
         })
         .catch(function(err) {
           self.loading = false;

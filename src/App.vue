@@ -1,9 +1,11 @@
 <template>
   <div id="app">
-    <mynavbar></mynavbar>
-    <b-alert show>Default Alert</b-alert>
+    
+    <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
+    <myalert ref="alert_c"></myalert>
+    <myloading ref="loading_c"></myloading>
 
-  <b-modal id="modal1" title="练习成绩" v-model="modalshow" cancel-title="取消"	ok-title="确定" @ok="gotoReady">
+  <b-modal id="modal1" title="练习成绩" v-model="modalshow" cancel-title="取消"	ok-title="保存成绩" @cancel="gotoReady"  @ok="gotoReady" :ok-disabled="!userislogin">
     <p class="my-4">本次练习综合成绩为：{{result}}</p>
   </b-modal>
     <b-container style="margin-top:30px;">
@@ -31,20 +33,23 @@
       </b-row>
       <b-row>
         <b-col>
-          <b-button variant="primary" :disabled="countTime!='开  始'" @click="training(null)" style="width:50%"> > > > {{countTime}} < < < </b-button>
+          <b-button variant="primary" :disabled="countTime!='开  始'" @click="training(null)" style="width:50%"> <b>&rArr; &rArr; &rArr;</b> {{countTime}} <b>&lArr; &lArr; &lArr;</b> </b-button>
         </b-col>
       </b-row>
-      <b-button @click="gotoReady">adfaf</b-button>
+      <b-button @click="testsave">saverecord</b-button>
     </b-container>
   </div>
 </template>
 
 <script>
-import mynavbar from './components/mynavbar.vue'
+import mynavbar from "./components/mynavbar.vue";
+import myloading from "./components/loading.vue";
+import myalert from "./components/myalert.vue";
+
+import axios from "axios";
 var begin = 0;
 var end = 12;
-var str =
-  "qazwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmik";
+var str = "qazwsxedcrfvtgbyhnujmikq"; //azwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmik";
 //var result = 0;
 var time_begin = false;
 var time_h = 0;
@@ -64,11 +69,14 @@ export default {
       countTime: "开  始",
       modalshow: false,
       result: 0,
-      // login:false,
+      userinfo: "",
+      userislogin: false
     };
   },
-  components:{
-    mynavbar
+  components: {
+    mynavbar,
+    myloading,
+    myalert
   },
   computed: {
     rightRate: function() {
@@ -86,13 +94,19 @@ export default {
     }
   },
   mounted() {
+    //console.log(this.$refs.navbar_c.login)
     window.addEventListener("keypress", this.whenKeyPress);
   },
   beforeDestroy() {
     window.removeEventListener("keypress", this.whenKeyPress);
   },
   methods: {
-    gotoReady() {
+    islogin(val) {
+      console.log(val);
+      this.userislogin = val;
+    },
+    gotoReady(evt) {
+      if (this.userislogin) this.saverecord();
       time_h = 0;
       time_m = 0;
       time_s = 0;
@@ -112,9 +126,10 @@ export default {
       for (var i = 0; i < this.$refs.keyStyle.length; i++) {
         this.$refs.keyStyle[i].className = "btn keybutton btn-secondary";
       }
+      window.addEventListener("keypress", this.whenKeyPress);
     },
     training(traiStr) {
-      console.log(this);
+      //console.log(this);
       this.wordCount = str.length;
       time_begin = true;
       this.getNewRow(begin, end);
@@ -131,7 +146,7 @@ export default {
         tempstr = tempstr + " ";
       }
       this.typeKeys = tempstr;
-      
+
       for (var i = 0; i < this.$refs.keyStyle.length; i++) {
         this.$refs.keyStyle[i].className = "btn keybutton btn-secondary";
       }
@@ -173,14 +188,23 @@ export default {
         this.currentKeyPosition = 0;
         begin = end;
         end = begin + 12;
+        if (begin == this.wordCount) {
+          time_begin = false;
+          window.removeEventListener("keypress", this.whenKeyPress);
+          this.modalshow = true; //$.myMethod.showResult();
+          return;
+        }
         this.getNewRow(begin, end);
       }
     },
     totalperMinute() {
       if (time_begin) {
         let totalSecond = time_h * 3600 + time_m * 60 + time_s - 1;
-        let temp = Math.round((this.rightCount / totalSecond) * 100) / 100;
-        this.perMinute = Math.round(temp * 60 * 100) / 100;
+        if (totalSecond != 0) {
+          var temp = Math.round((this.rightCount / totalSecond) * 100) / 100;
+          this.perMinute = Math.round(temp * 60 * 100) / 100;
+        }
+
         window.setTimeout(this.totalperMinute, 5000);
       }
     },
@@ -215,6 +239,53 @@ export default {
         }
         window.setTimeout(this.timecount, 1000);
       }
+    },
+    saverecord() {
+      this.$refs.loading_c.title = "正在保存...";
+      this.$refs.loading_c.showloading();
+      let record = {
+        userid: this.$refs.navbar_c.userinfo.id,
+        score: this.result,
+        rightrate: this.rightRate,
+        time: this.countTime,
+        finishdate: Date.now()
+      };
+      let self = this;
+      axios
+        .post("/sys/addtkrecord", { record: record })
+        .then(function(res) {
+          self.$refs.loading_c.hidderloading();
+          if (res.data.error) {
+            self.$refs.alert_c.message =
+              "保存失败！错误原因：" + res.data.message;
+            self.$refs.alert_c.variant = "danger";
+            self.$refs.alert_c.showAlert();
+            //console.log(res.data.message);
+            return;
+          }
+          self.$refs.alert_c.message = "保存成功！";
+          self.$refs.alert_c.variant = "success";
+          self.$refs.alert_c.dismissSecs = 5;
+          self.$refs.alert_c.showAlert();
+          //console.log(res.data.record);
+        })
+        .catch(function(err) {
+          self.$refs.loading_c.hidderloading();
+          self.$refs.alert_c.message = "系统错误，保存失败！：" + err.message;
+          self.$refs.alert_c.variant = "danger";
+          self.$refs.alert_c.showAlert();
+          //console.log(err.message);
+        });
+    },
+    testsave() {
+      this.$refs.alert_c.showAlert();
+      // this.modalshow=true;
+      // let loading=this.$loading.show({
+      //   canCancel:true,
+      //   //container:null,
+      //   color:"#28a745",
+      //   loader:'dots'
+      // })
     }
   }
 };
