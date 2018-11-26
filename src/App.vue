@@ -3,7 +3,7 @@
     <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
-    <myadminlesson @displayLoading="showloading"></myadminlesson>
+    <myadminlesson @displayLoading="showloading" @displayAlert="showalert"></myadminlesson>
     <b-modal
       id="modal1"
       title="练习成绩"
