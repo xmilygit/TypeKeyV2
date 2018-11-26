@@ -4,6 +4,7 @@
     <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
+    <myadminlesson></myadminlesson>
 
   <b-modal id="modal1" title="练习成绩" v-model="modalshow" cancel-title="取消"	ok-title="保存成绩" @cancel="gotoReady"  @ok="gotoReady" :ok-disabled="!userislogin">
     <p class="my-4">本次练习综合成绩为：{{result}}</p>
@@ -45,6 +46,7 @@
 import mynavbar from "./components/mynavbar.vue";
 import myloading from "./components/loading.vue";
 import myalert from "./components/myalert.vue";
+import myadminlesson from "./components/adminlesson.vue";
 
 import axios from "axios";
 var begin = 0;
@@ -76,7 +78,8 @@ export default {
   components: {
     mynavbar,
     myloading,
-    myalert
+    myalert,
+    myadminlesson
   },
   computed: {
     rightRate: function() {
