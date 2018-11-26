@@ -1,43 +1,81 @@
 <template>
   <div id="app">
-    
     <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
-    <myadminlesson></myadminlesson>
-
-  <b-modal id="modal1" title="练习成绩" v-model="modalshow" cancel-title="取消"	ok-title="保存成绩" @cancel="gotoReady"  @ok="gotoReady" :ok-disabled="!userislogin">
-    <p class="my-4">本次练习综合成绩为：{{result}}</p>
-  </b-modal>
+    <myadminlesson @displayLoading="showloading"></myadminlesson>
+    <b-modal
+      id="modal1"
+      title="练习成绩"
+      v-model="modalshow"
+      cancel-title="取消"
+      ok-title="保存成绩"
+      @cancel="gotoReady"
+      @ok="gotoReady"
+      :ok-disabled="!userislogin"
+    >
+      <p class="my-4">本次练习综合成绩为：{{result}}</p>
+    </b-modal>
     <b-container style="margin-top:30px;">
-      
       <b-row style="padding-bottom:20px;">
         <b-col>
-          <b-button variant="success"><i class="material-icons buttonoffset">check</i>正确：{{rightCount}} 个</b-button>
-          <b-button variant="success"><i class="material-icons buttonoffset">close</i>错误：{{errCount}} 个</b-button>
-          <b-button variant="success"><i class="material-icons buttonoffset">subject</i>共有字符：{{wordCount}} 个</b-button>
-          <b-button variant="success"><i class="material-icons buttonoffset">spellcheck</i>正确率：{{rightRate}} %</b-button>
-          <b-button variant="success"><i class="material-icons buttonoffset">query_builder</i>每分钟：{{perMinute}} 个</b-button>
+          <b-button variant="success">
+            <i class="material-icons buttonoffset">check</i>
+            正确：{{rightCount}} 个
+          </b-button>
+          <b-button variant="success">
+            <i class="material-icons buttonoffset">close</i>
+            错误：{{errCount}} 个
+          </b-button>
+          <b-button variant="success">
+            <i class="material-icons buttonoffset">subject</i>
+            共有字符：{{wordCount}} 个
+          </b-button>
+          <b-button variant="success">
+            <i class="material-icons buttonoffset">spellcheck</i>
+            正确率：{{rightRate}} %
+          </b-button>
+          <b-button variant="success">
+            <i class="material-icons buttonoffset">query_builder</i>
+            每分钟：{{perMinute}} 个
+          </b-button>
         </b-col>
       </b-row>
       <b-row>
         <b-col>
           <b-button-group>
-          <b-button variant="secondary" v-for="(item,index) in typeKeys" :key="index" class="keybutton" ref="keyStyle"><h2 ref="keys">{{item}}</h2></b-button>
+            <b-button
+              variant="secondary"
+              v-for="(item,index) in typeKeys"
+              :key="index"
+              class="keybutton"
+              ref="keyStyle"
+            >
+              <h2 ref="keys">{{item}}</h2>
+            </b-button>
           </b-button-group>
         </b-col>
       </b-row>
       <b-row>
         <b-col>
-          <img src="./assets/kp.jpg" style="margin-top:30px;" />
+          <img src="./assets/kp.jpg" style="margin-top:30px;">
         </b-col>
       </b-row>
       <b-row>
         <b-col>
-          <b-button variant="primary" :disabled="countTime!='开  始'" @click="training(null)" style="width:50%"> <b>&rArr; &rArr; &rArr;</b> {{countTime}} <b>&lArr; &lArr; &lArr;</b> </b-button>
+          <b-button
+            variant="primary"
+            :disabled="countTime!='开  始'"
+            @click="training(null)"
+            style="width:50%"
+          >
+            <b>&rArr; &rArr; &rArr;</b>
+            {{countTime}}
+            <b>&lArr; &lArr; &lArr;</b>
+          </b-button>
         </b-col>
       </b-row>
-      <b-button @click="testsave">saverecord</b-button>
+      <b-button @click="showloading(null)">saverecord</b-button>
     </b-container>
   </div>
 </template>
@@ -244,8 +282,7 @@ export default {
       }
     },
     saverecord() {
-      this.$refs.loading_c.title = "正在保存...";
-      this.$refs.loading_c.showloading();
+      this.showloading(null, true);
       let record = {
         userid: this.$refs.navbar_c.userinfo.id,
         score: this.result,
@@ -257,28 +294,32 @@ export default {
       axios
         .post("/sys/addtkrecord", { record: record })
         .then(function(res) {
-          self.$refs.loading_c.hidderloading();
+          self.showloading();
           if (res.data.error) {
-            self.$refs.alert_c.message =
-              "保存失败！错误原因：" + res.data.message;
-            self.$refs.alert_c.variant = "danger";
-            self.$refs.alert_c.showAlert();
-            //console.log(res.data.message);
+            self.showalert("保存失败！错误原因：" + res.data.message, "danger");
             return;
           }
-          self.$refs.alert_c.message = "保存成功！";
-          self.$refs.alert_c.variant = "success";
-          self.$refs.alert_c.dismissSecs = 5;
-          self.$refs.alert_c.showAlert();
-          //console.log(res.data.record);
+          self.showalert("保存成功！", "success",3);
         })
         .catch(function(err) {
-          self.$refs.loading_c.hidderloading();
-          self.$refs.alert_c.message = "系统错误，保存失败！：" + err.message;
-          self.$refs.alert_c.variant = "danger";
-          self.$refs.alert_c.showAlert();
-          //console.log(err.message);
+          self.showloading();
+          self.showalert("系统错误，保存失败！：" + err.message, "danger");
         });
+    },
+    showloading(message, show) {
+      message = message || "正在保存...";
+      this.$refs.loading_c.title = message;
+      if (show) this.$refs.loading_c.showloading();
+      else this.$refs.loading_c.hidderloading();
+    },
+    showalert(message, variant, dismissSecs) {
+      message = message || "保存成功！";
+      variant = variant || "success";
+      dismissSecs = dismissSecs || 10;
+      this.$refs.alert_c.message = message;
+      this.$refs.alert_c.variant = variant;
+      this.$refs.alert_c.dismissSecs = dismissSecs;
+      this.$refs.alert_c.showAlert();
     },
     testsave() {
       this.$refs.alert_c.showAlert();
