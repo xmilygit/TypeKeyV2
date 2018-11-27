@@ -1,9 +1,10 @@
 <template>
   <div id="app">
-    <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
+    <mynavbar ref="navbar_c" @loginevent="islogin" @addlessonEvent="$refs.addlesson.modalshow=true"></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
-    <myadminlesson @displayLoading="showloading" @displayAlert="showalert"></myadminlesson>
+    <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson>
+    <mytklessonlist></mytklessonlist>
     <b-modal
       id="modal1"
       title="练习成绩"
@@ -85,6 +86,7 @@ import mynavbar from "./components/mynavbar.vue";
 import myloading from "./components/loading.vue";
 import myalert from "./components/myalert.vue";
 import myadminlesson from "./components/adminlesson.vue";
+import mytklessonlist from './components/tklessonlist.vue';
 
 import axios from "axios";
 var begin = 0;
@@ -117,7 +119,8 @@ export default {
     mynavbar,
     myloading,
     myalert,
-    myadminlesson
+    myadminlesson,
+    mytklessonlist
   },
   computed: {
     rightRate: function() {

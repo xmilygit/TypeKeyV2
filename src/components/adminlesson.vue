@@ -48,7 +48,7 @@ export default {
         lessonname: "",
         lessoncontent: ""
       },
-      modalshow: true
+      modalshow: false
     };
   },
   methods: {

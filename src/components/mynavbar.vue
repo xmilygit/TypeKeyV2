@@ -49,7 +49,8 @@
           <template slot="button-content">
             <em>{{userinfo.username}}</em>
           </template>
-          <!-- <b-dropdown-item href="#">Profile</b-dropdown-item> -->
+          <b-dropdown-item href="#" @click="$emit('addlessonEvent')">添加课程</b-dropdown-item>
+          <b-dropdown-item href="#">修改课程</b-dropdown-item>
           <b-dropdown-item href="#" @click="signout">退出</b-dropdown-item>
         </b-nav-item-dropdown>
       </b-navbar-nav>
@@ -86,22 +87,18 @@ export default {
     if (token) {
       axios
         .post("/sys/validsignin", { token: token })
-        // .then(function(res) {
-        //   if (res.data.signin) {
-        //     console.log(res.data);
-        //     self.userinfo.username = res.data.userinfo.username;
-        //     self.userinfo.id = res.data.userinfo.id;
-        //     self.login = true;
-        //     return;
-        //   } else {
-        //     self.login = false;
-        //   }
-        // })
         .then(this.getusercache)
         .catch(function(error) {
           self.login = false;
         });
     }
+    axios
+    .get('/sys/gettklesson')
+    .then()
+    .catch(function(error){
+
+    })
+
   },
   watch: {
     login: function() {
@@ -119,6 +116,9 @@ export default {
       } else {
         this.login = false;
       }
+    },
+    gettklesson(res){
+      //if(res.data.error)
     },
     signin(evt) {
       evt.preventDefault();
