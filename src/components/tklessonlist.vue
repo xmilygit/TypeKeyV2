@@ -6,14 +6,18 @@
         hide-footer
         v-model="modalshow"
     >
-        <b-table striped hover :items="items" :fields="fields"></b-table>
-    </b-modal>
+        <b-table striped hover :items="items" :fields="fields" :per-page="perPage" :current-page="currentPage">
+        </b-table>
+        <b-pagination align="center" :total-rows="8" v-model="currentPage" :per-page="perPage"></b-pagination>
+    </b-modal>    
 </template>
 
 <script>
 export default {
   data() {
     return {
+      perPage:2,
+      currentPage:1,
       modalshow: true,
       fields: ["first_name", "last_name", "age"],
       items: [
