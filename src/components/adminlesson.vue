@@ -63,7 +63,8 @@ export default {
             self.$emit('displayLoading')
             if(res.data.error){
                 //出错处理
-                self.$emit("displayAlert","保存失败："+res.data.error.message,"danger",null,)
+                self.$emit("displayAlert","保存失败："+res.data.message,"danger",null,)
+                return;
             }
             //正常处理
             self.$emit("displayAlert",null,null,5);
