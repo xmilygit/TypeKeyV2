@@ -93,12 +93,9 @@ export default {
         });
     }
     axios
-    .get('/sys/gettklesson')
-    .then()
-    .catch(function(error){
-
-    })
-
+      .get("/sys/getalltklesson")
+      .then(this.getlessonlist)
+      .catch(function(error) {});
   },
   watch: {
     login: function() {
@@ -117,7 +114,16 @@ export default {
         this.login = false;
       }
     },
-    gettklesson(res){
+    //获取课程列表
+    getlessonlist(res) {
+      if (res.data.error) {
+        //alert错误
+        console.log(res.data.message);
+        retrun;
+      }
+      this.lessonlist = res.data.lessonlist;
+    },
+    gettklesson(res) {
       //if(res.data.error)
     },
     signin(evt) {

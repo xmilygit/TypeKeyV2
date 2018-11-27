@@ -6,7 +6,7 @@
         hide-footer
         v-model="modalshow"
     >
-        <b-table striped hover :items="items" :fields="fields" :per-page="perPage" :current-page="currentPage">
+        <b-table striped hover :items="items" :fields="fields" :per-page="perPage">
         </b-table>
         <b-pagination align="center" :total-rows="8" v-model="currentPage" :per-page="perPage"></b-pagination>
     </b-modal>    
