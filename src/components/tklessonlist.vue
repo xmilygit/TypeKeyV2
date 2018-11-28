@@ -88,7 +88,7 @@ export default {
       totalrows: 0,
       perPage: 5,
       currentPage: 1,
-      modalshow: true,
+      modalshow: false,
       fields: [
         { key: "lessonname", label: "课程名称", sortable: true },
         { key: "actions", label: "操作" }
@@ -112,10 +112,9 @@ export default {
   methods: {
     clearform() {
       if (this.form.id) delete this.form["id"];
-      this.lessonname = "";
-      this.lessoncontent = "";
+      this.form.lessonname = "";
+      this.form.lessoncontent = "";
       this.showadddlesson = false;
-      
     },
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown;
@@ -186,8 +185,7 @@ export default {
       if (this.form.id) {
         axios
           .post("/sys/edittklesson", {
-            lessoninfo: this.form,
-            id: this.form.id
+            lessoninfo: this.form
           })
           .then(this.editinglesson)
           .catch(function(err) {
@@ -211,7 +209,23 @@ export default {
           self.dismissCountDown = 10;
         });
     },
-    editinglesson(res) {},
+    editinglesson(res) {
+      if (res.data.error) {
+        this.message = "保存失败:" + res.data.message;
+        this.variant = "danger";
+        this.dismissCountDown = 10;
+        return;
+      }
+      this.showadddlesson = false;
+      this.message = "保存成功";
+      this.variant = "success";
+      this.dismissCountDown = 5;
+      setTimeout(() => {
+        this.form.lessonname = "";
+        this.form.lessoncontent = "";
+        this.loadlessonlist();
+      }, this.dismissCountDown * 1000);
+    },
     saveinglesson(res) {
       //self.$emit("displayLoading");
       if (res.data.error) {
@@ -231,9 +245,6 @@ export default {
       this.loadlessonlist();
     },
     editlesson(index, item) {
-      console.log(this.form);
-      console.log(index);
-      console.log(item);
       this.showadddlesson = true;
       this.form.lessonname = item.lessonname;
       this.form.lessoncontent = item.lessoncontent;

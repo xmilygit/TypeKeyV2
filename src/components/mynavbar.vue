@@ -9,8 +9,8 @@
       </b-navbar-nav>
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
-        <b-nav-item-dropdown text="课程选择" right>
-          <b-dropdown-item v-for="(item,index) in lessonlist" :key="index">{{item.lessonname}}</b-dropdown-item>
+        <b-nav-item-dropdown text="课程选择" right >
+          <b-dropdown-item v-for="(item,index) in lessonlist" :key="index" @click="$emit('execlessonEvent',index)">{{item.lessonname}}</b-dropdown-item>
         </b-nav-item-dropdown>
         <b-nav-form v-if="!login" @submit="signin">
           <b-form-input
@@ -49,7 +49,7 @@
           <template slot="button-content">
             <em>{{userinfo.username}}</em>
           </template>
-          <b-dropdown-item href="#">修改课程</b-dropdown-item>
+          <b-dropdown-item href="#" @click="$emit('openlessonEvent')">修改课程</b-dropdown-item>
           <b-dropdown-item href="#" @click="signout">退出</b-dropdown-item>
         </b-nav-item-dropdown>
       </b-navbar-nav>
@@ -162,6 +162,13 @@ export default {
       setTimeout(() => {
         this.logintip.status = false;
       }, 5000);
+    },
+    testevent(a,b,c){
+      console.log(a);
+      console.log(b)
+      for (var i in arguments) {
+        alert(arguments[i]);
+    }
     }
   }
 };

@@ -1,10 +1,10 @@
 <template>
   <div id="app">
-    <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
+    <mynavbar ref="navbar_c" @loginevent="islogin" @openlessonEvent="openlesson" @execlessonEvent="execlesson"></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
     <!-- <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson> -->
-    <mytklessonlist></mytklessonlist>
+    <mytklessonlist ref="lessonmanage"></mytklessonlist>
     
     <b-modal
       id="modal1"
@@ -92,7 +92,7 @@ import mytklessonlist from './components/tklessonlist.vue';
 import axios from "axios";
 var begin = 0;
 var end = 12;
-var str = "qazwsxedcrfvtgbyhnujmikq"; //azwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmik";
+//var str = "qazwsxedcrfvtgbyhnujmikq"; //azwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmikqazwsxedcrfvtgbyhnujmik";
 //var result = 0;
 var time_begin = false;
 var time_h = 0;
@@ -103,6 +103,7 @@ export default {
   name: "app",
   data() {
     return {
+      str:'',
       typeKeys: "请登录后点击开始开始练习",
       currentKeyPosition: 0,
       errCount: 0,
@@ -151,7 +152,8 @@ export default {
       this.userislogin = val;
     },
     gotoReady(evt) {
-      if (this.userislogin) this.saverecord();
+      console.log(evt)
+      if (this.userislogin&&evt.trigger!='cancel') this.saverecord();
       time_h = 0;
       time_m = 0;
       time_s = 0;
@@ -175,7 +177,7 @@ export default {
     },
     training(traiStr) {
       //console.log(this);
-      this.wordCount = str.length;
+      this.wordCount = this.str.length;
       time_begin = true;
       this.getNewRow(begin, end);
       this.timecount();
@@ -186,7 +188,7 @@ export default {
         alert("begin-end mast be equst 12");
         return;
       }
-      let tempstr = str.substring(begin, end).toUpperCase();
+      let tempstr = this.str.substring(begin, end).toUpperCase();
       while (tempstr.length < 12) {
         tempstr = tempstr + " ";
       }
@@ -325,16 +327,26 @@ export default {
       this.$refs.alert_c.dismissSecs = dismissSecs;
       this.$refs.alert_c.showAlert();
     },
-    testsave() {
-      this.$refs.alert_c.showAlert();
-      // this.modalshow=true;
-      // let loading=this.$loading.show({
-      //   canCancel:true,
-      //   //container:null,
-      //   color:"#28a745",
-      //   loader:'dots'
-      // })
-    }
+    openlesson() {
+      this.$refs.lessonmanage.modalshow=true;
+    },
+    execlesson(index){
+      let lessonid=this.$refs.navbar_c.lessonlist[index];
+      this.showloading('正在加载课程数据...',true);
+      axios.get('/sys/getlessonbyid?id='+this.$refs.navbar_c.lessonlist[index]._id)
+      .then(this.execinglesson)
+      .catch(function(err){
+        this.showalert("系统错误！错误原因：" + err.message, "danger");
+      })
+    },
+    execinglesson(res){
+      this.showloading();
+      if(res.data.error){
+        this.showalert("加载课程失败！错误原因：" + res.data.message, "danger");
+        return;
+      }
+      this.str=res.data.result.lessoncontent;
+    },
   }
 };
 </script>
