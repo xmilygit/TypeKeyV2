@@ -5,6 +5,7 @@
     <myloading ref="loading_c"></myloading>
     <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson>
     <mytklessonlist></mytklessonlist>
+    
     <b-modal
       id="modal1"
       title="练习成绩"
