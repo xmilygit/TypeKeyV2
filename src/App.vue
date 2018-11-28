@@ -1,9 +1,9 @@
 <template>
   <div id="app">
-    <mynavbar ref="navbar_c" @loginevent="islogin" @addlessonEvent="$refs.addlesson.modalshow=true"></mynavbar>
+    <mynavbar ref="navbar_c" @loginevent="islogin"></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
-    <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson>
+    <!-- <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson> -->
     <mytklessonlist></mytklessonlist>
     
     <b-modal
@@ -86,7 +86,7 @@
 import mynavbar from "./components/mynavbar.vue";
 import myloading from "./components/loading.vue";
 import myalert from "./components/myalert.vue";
-import myadminlesson from "./components/adminlesson.vue";
+// import myadminlesson from "./components/adminlesson.vue";
 import mytklessonlist from './components/tklessonlist.vue';
 
 import axios from "axios";
@@ -120,7 +120,7 @@ export default {
     mynavbar,
     myloading,
     myalert,
-    myadminlesson,
+    // myadminlesson,
     mytklessonlist
   },
   computed: {

@@ -49,7 +49,6 @@
           <template slot="button-content">
             <em>{{userinfo.username}}</em>
           </template>
-          <b-dropdown-item href="#" @click="$emit('addlessonEvent')">添加课程</b-dropdown-item>
           <b-dropdown-item href="#">修改课程</b-dropdown-item>
           <b-dropdown-item href="#" @click="signout">退出</b-dropdown-item>
         </b-nav-item-dropdown>

@@ -19,8 +19,47 @@
     <b-input-group>
       <b-form-input placeholder="搜索关键字" v-model="keyword"/>
       <b-button @click="loadlessonlist" size="sm">搜索</b-button>
+      <b-button v-b-toggle.collapse1 size="sm">添加</b-button>
     </b-input-group>
-
+    <b-collapse id="collapse1" class="mt-2">
+      <b-card>
+        <form style="text-align:left;" ref="form" @submit="savelesson">
+          <b-form-group
+            id="InputGroup1"
+            label="课程名称:"
+            label-for="lessonname"
+            description="用于课程显示时的名称"
+          >
+            <b-form-input
+              id="lessonname"
+              type="text"
+              v-model.trim="form.lessonname"
+              required
+              placeholder="课程名称"
+            ></b-form-input>
+          </b-form-group>
+          <b-form-group
+            id="InputGroup2"
+            label="课程内容:"
+            label-for="lessoncontent"
+            description="练习时的所有字符"
+          >
+            <b-form-textarea
+              id="lessoncontent"
+              v-model.trim="form.lessoncontent"
+              placeholder="输入练习内容"
+              :rows="4"
+              :max-rows="6"
+              required
+            ></b-form-textarea>
+          </b-form-group>
+          <div style="text-align:right">
+            <b-button type="submit" variant="primary">保存</b-button>
+            <b-button type="reset" variant="danger" v-b-toggle.collapse1>取消</b-button>
+          </div>
+        </form>
+      </b-card>
+    </b-collapse>
     <b-table striped hover :items="items" :fields="fields" :per-page="perPage">
       <template slot="actions" slot-scope="row">
         <!-- We use @click.stop here to prevent a 'row-clicked' event from also happening -->
@@ -38,7 +77,6 @@
 
 <script>
 import axios from "axios";
-import linq from "linq";
 export default {
   data() {
     return {
@@ -55,7 +93,11 @@ export default {
         { key: "actions", label: "操作" }
       ],
       items: [],
-      keyword: ""
+      keyword: "",
+      form: {
+        lessonname: "",
+        lessoncontent: ""
+      }
     };
   },
   watch: {
@@ -102,7 +144,10 @@ export default {
       let self = this;
       axios
         .get(
-          "/sys/getalltklessonpaging?currentpage=" + this.currentPage + "&keyword=" + this.keyword
+          "/sys/getalltklessonpaging?currentpage=" +
+            this.currentPage +
+            "&keyword=" +
+            this.keyword
         )
         .then(this.showlesson)
         .catch(function(err) {
@@ -122,6 +167,34 @@ export default {
       //console.log(res.data.pagingdata)
       this.totalrows = res.data.pagingdata.count;
       this.items = res.data.pagingdata.recordset;
+    },
+    savelesson(evt) {
+      evt.preventDefault();
+      let self = this;
+      axios
+        .post("/sys/savetklesson", { lessoninfo: this.form })
+        .then(this.saveinglesson)
+        .catch(function(err) {
+          //self.$emit("displayLoading");
+          //系统出错处理
+          self.message = "系统错误：" + err.message;
+          self.variant = "danger";
+          self.dismissCountDown = 10;
+        });
+    },
+    saveinglesson(res) {
+      //self.$emit("displayLoading");
+      if (res.data.error) {
+        //出错处理
+        this.message = "保存失败：" + res.data.message;
+        this.variant = "danger";
+        this.dismissCountDown = 10;
+        return;
+      }
+      //正常处理
+      this.message = "保存成功";
+      this.variant = "success";
+      this.dismissCountDown = 5;
     },
     info(a, b, c) {
       console.log(a);

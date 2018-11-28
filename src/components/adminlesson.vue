@@ -42,39 +42,7 @@ export default {
     };
   },
   methods: {
-    savelesson(evt) {
-      evt.preventDefault();
-      this.modalshow = false;
-      this.$emit("displayLoading", null, true);
-      let self = this;
-      axios
-        .post("/sys/savetklesson", { lessoninfo: self.form })
-        .then(function(res) {
-          self.$emit("displayLoading");
-          if (res.data.error) {
-            //出错处理
-            self.$emit(
-              "displayAlert",
-              "保存失败：" + res.data.message,
-              "danger",
-              null
-            );
-            return;
-          }
-          //正常处理
-          self.$emit("displayAlert", null, null, 5);
-        })
-        .catch(function(err) {
-          self.$emit("displayLoading");
-          //系统出错处理
-          self.$emit(
-            "displayAlert",
-            "系统错误：" + err.message,
-            "danger",
-            null
-          );
-        });
-    }
+    
   }
 };
 </script>
