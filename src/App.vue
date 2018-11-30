@@ -1,11 +1,16 @@
 <template>
   <div id="app">
-    <mynavbar ref="navbar_c" @loginevent="islogin" @openlessonEvent="openlesson" @execlessonEvent="execlesson"></mynavbar>
+    <mynavbar
+      ref="navbar_c"
+      @loginevent="islogin"
+      @openlessonEvent="openlesson"
+      @execlessonEvent="execlesson"
+    ></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
     <!-- <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson> -->
     <mytklessonlist ref="lessonmanage"></mytklessonlist>
-    
+
     <b-modal
       id="modal1"
       title="练习成绩"
@@ -87,7 +92,7 @@ import mynavbar from "./components/mynavbar.vue";
 import myloading from "./components/loading.vue";
 import myalert from "./components/myalert.vue";
 // import myadminlesson from "./components/adminlesson.vue";
-import mytklessonlist from './components/tklessonlist.vue';
+import mytklessonlist from "./components/tklessonlist.vue";
 
 import axios from "axios";
 var begin = 0;
@@ -103,7 +108,7 @@ export default {
   name: "app",
   data() {
     return {
-      str:'',
+      str: "",
       typeKeys: "请登录后点击开始开始练习",
       currentKeyPosition: 0,
       errCount: 0,
@@ -114,7 +119,8 @@ export default {
       modalshow: false,
       result: 0,
       userinfo: "",
-      userislogin: false
+      userislogin: false,
+      lessonname:''
     };
   },
   components: {
@@ -152,8 +158,8 @@ export default {
       this.userislogin = val;
     },
     gotoReady(evt) {
-      console.log(evt)
-      if (this.userislogin&&evt.trigger!='cancel') this.saverecord();
+      console.log(evt);
+      if (this.userislogin && evt.trigger != "cancel") this.saverecord();
       time_h = 0;
       time_m = 0;
       time_s = 0;
@@ -288,9 +294,10 @@ export default {
       }
     },
     saverecord() {
+      let token = sessionStorage.getItem("token");
       this.showloading(null, true);
       let record = {
-        userid: this.$refs.navbar_c.userinfo.id,
+        lesson:this.lessonname,
         score: this.result,
         rightrate: this.rightRate,
         time: this.countTime,
@@ -298,19 +305,20 @@ export default {
       };
       let self = this;
       axios
-        .post("/sys/addtkrecord", { record: record })
-        .then(function(res) {
-          self.showloading();
-          if (res.data.error) {
-            self.showalert("保存失败！错误原因：" + res.data.message, "danger");
-            return;
-          }
-          self.showalert("保存成功！", "success",3);
-        })
+        .post("/sys/addtkrecord", { record: record,token:token })
+        .then(this.saveingrecord)
         .catch(function(err) {
           self.showloading();
           self.showalert("系统错误，保存失败！：" + err.message, "danger");
         });
+    },
+    saveingrecord(res) {
+      this.showloading();
+      if (res.data.error) {
+        this.showalert("保存失败！错误原因：" + res.data.message, "danger");
+        return;
+      }
+      this.showalert("保存成功！", "success", 3);
     },
     showloading(message, show) {
       message = message || "正在保存...";
@@ -328,25 +336,29 @@ export default {
       this.$refs.alert_c.showAlert();
     },
     openlesson() {
-      this.$refs.lessonmanage.modalshow=true;
+      this.$refs.lessonmanage.modalshow = true;
     },
-    execlesson(index){
-      let lessonid=this.$refs.navbar_c.lessonlist[index];
-      this.showloading('正在加载课程数据...',true);
-      axios.get('/sys/getlessonbyid?id='+this.$refs.navbar_c.lessonlist[index]._id)
-      .then(this.execinglesson)
-      .catch(function(err){
-        this.showalert("系统错误！错误原因：" + err.message, "danger");
-      })
+    execlesson(index) {
+      let lessonid = this.$refs.navbar_c.lessonlist[index];
+      this.lessonname=this.$refs.navbar_c.lessonlist[index].lessonname;
+      this.showloading("正在加载课程数据...", true);
+      axios
+        .get(
+          "/sys/getlessonbyid?id=" + this.$refs.navbar_c.lessonlist[index]._id
+        )
+        .then(this.execinglesson)
+        .catch(function(err) {
+          this.showalert("系统错误！错误原因：" + err.message, "danger");
+        });
     },
-    execinglesson(res){
+    execinglesson(res) {
       this.showloading();
-      if(res.data.error){
+      if (res.data.error) {
         this.showalert("加载课程失败！错误原因：" + res.data.message, "danger");
         return;
       }
-      this.str=res.data.result.lessoncontent;
-    },
+      this.str = res.data.result.lessoncontent;
+    }
   }
 };
 </script>
