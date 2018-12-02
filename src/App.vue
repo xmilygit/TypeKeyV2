@@ -5,12 +5,15 @@
       @loginevent="islogin"
       @openlessonEvent="openlesson"
       @execlessonEvent="execlesson"
+      @showtraningrecord="opentraningrecord"
+      @showtraningrank="opentraningrank"
     ></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
     <!-- <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson> -->
     <mytklessonlist ref="lessonmanage"></mytklessonlist>
-
+    <trainingrecordlist ref="trainingrecordlist"></trainingrecordlist>
+    <trainingranlist ref="trainingranklist" @showrank="opentraningrank" :user="user" :rank="rank"></trainingranlist>
     <b-modal
       id="modal1"
       title="练习成绩"
@@ -26,6 +29,10 @@
     <b-container style="margin-top:30px;">
       <b-row style="padding-bottom:20px;">
         <b-col>
+          <b-button variant="success" v-show="lessonname.length>0">
+            <i class="material-icons buttonoffset">check</i>
+            当前课程：{{lessonname}}
+          </b-button>
           <b-button variant="success">
             <i class="material-icons buttonoffset">check</i>
             正确：{{rightCount}} 个
@@ -82,7 +89,8 @@
           </b-button>
         </b-col>
       </b-row>
-      <b-button @click="showloading(null)">saverecord</b-button>
+      <!-- <b-button @click="testother">setsession</b-button>
+      <b-button @click="testgetsession">getsession</b-button> -->
     </b-container>
   </div>
 </template>
@@ -91,8 +99,9 @@
 import mynavbar from "./components/mynavbar.vue";
 import myloading from "./components/loading.vue";
 import myalert from "./components/myalert.vue";
-// import myadminlesson from "./components/adminlesson.vue";
+import trainingrecordlist from "./components/trainingRecordList.vue";
 import mytklessonlist from "./components/tklessonlist.vue";
+import trainingranlist from "./components/trainingrankList.vue";
 
 import axios from "axios";
 var begin = 0;
@@ -118,17 +127,19 @@ export default {
       countTime: "开  始",
       modalshow: false,
       result: 0,
-      userinfo: "",
+      user: null,
       userislogin: false,
-      lessonname:''
+      lessonname: "",
+      rank: null
     };
   },
   components: {
     mynavbar,
     myloading,
     myalert,
-    // myadminlesson,
-    mytklessonlist
+    trainingrecordlist,
+    mytklessonlist,
+    trainingranlist
   },
   computed: {
     rightRate: function() {
@@ -146,7 +157,6 @@ export default {
     }
   },
   mounted() {
-    //console.log(this.$refs.navbar_c.login)
     window.addEventListener("keypress", this.whenKeyPress);
   },
   beforeDestroy() {
@@ -154,8 +164,12 @@ export default {
   },
   methods: {
     islogin(val) {
-      console.log(val);
-      this.userislogin = val;
+      this.user = val;
+      if (val) {
+        this.userislogin = true;
+      } else {
+        this.userislogin = false;
+      }
     },
     gotoReady(evt) {
       console.log(evt);
@@ -294,10 +308,10 @@ export default {
       }
     },
     saverecord() {
-      let token = sessionStorage.getItem("token");
+      let user = this.$refs.navbar_c.user;
       this.showloading(null, true);
       let record = {
-        lesson:this.lessonname,
+        lesson: this.lessonname,
         score: this.result,
         rightrate: this.rightRate,
         time: this.countTime,
@@ -305,7 +319,7 @@ export default {
       };
       let self = this;
       axios
-        .post("/sys/addtkrecord", { record: record,token:token })
+        .post("/sys/addtkrecord", { record: record, token: user.token })
         .then(this.saveingrecord)
         .catch(function(err) {
           self.showloading();
@@ -339,8 +353,7 @@ export default {
       this.$refs.lessonmanage.modalshow = true;
     },
     execlesson(index) {
-      let lessonid = this.$refs.navbar_c.lessonlist[index];
-      this.lessonname=this.$refs.navbar_c.lessonlist[index].lessonname;
+      this.lessonname = this.$refs.navbar_c.lessonlist[index].lessonname;
       this.showloading("正在加载课程数据...", true);
       axios
         .get(
@@ -358,6 +371,129 @@ export default {
         return;
       }
       this.str = res.data.result.lessoncontent;
+    },
+    opentraningrecord() {
+      let user = this.$refs.navbar_c.user;
+      if (!user) {
+        this.showalert("请先登录!", "info", 5);
+        return;
+      }
+      let self = this;
+      this.showloading("正在加载数据...", true);
+      axios
+        .get(
+          "/sys/gettkrecord?lesson=" + this.lessonname + "&token=" + user.token
+        )
+        .then(this.gettkrecord)
+        .catch(function(err) {
+          self.showloading();
+          self.showalert(err.message, "danger");
+        });
+    },
+    opentraningrank(eventtype) {
+      let self = this;
+      this.showloading("正在加载数据...", true);
+      this.rank = "成绩排名";
+      let querypath = "/sys/gettkrecordrank?lesson=" + this.lessonname;
+      let rankpath = undefined;
+      if (this.user) {
+        switch (eventtype) {
+          case "class":
+            this.rank = "您当前课程的班级排名为：第rankstr名！";
+            rankpath =
+              "/sys/getuserrankbyclass?token=" +
+              this.user.token +
+              "&lesson=" +
+              this.lessonname +
+              "&classno=" +
+              this.user.info.baseinfo.classno;
+            querypath =
+              "/sys/gettkrecordrankbyclass?lesson=" +
+              this.lessonname +
+              "&classno=" +
+              this.user.info.baseinfo.classno +
+              "&token=" +
+              this.user.token;
+            break;
+          case "school":
+          //   querypath=
+          //   break;
+          default:
+            rankpath =
+              "/sys/getuserrankbyschool?token=" +
+              this.user.token +
+              "&lesson=" +
+              this.lessonname;
+            this.rank = "您当前课程的全校排名为：第rankstr名！";
+            break;
+        }
+      } else {
+      }
+
+      axios
+        .get(querypath)
+        .then(this.gettkrecordrank)
+        .catch(function(err) {
+          self.showloading();
+          self.showalert(err.message, "danger");
+        });
+      if (rankpath) {
+        axios
+          .get(rankpath)
+          .then(this.showuserrank)
+          .catch(function(err) {
+            self.showalert(err.message, "danger");
+          });
+      }
+    },
+
+    gettkrecord(res) {
+      this.showloading();
+      if (res.data.error) {
+        this.showalert(res.data.message);
+        return;
+      }
+      this.$refs.trainingrecordlist.modalshow = true;
+      this.$refs.trainingrecordlist.items = res.data.result;
+      this.$refs.trainingrecordlist.totalrows = this.$refs.trainingrecordlist.items.length;
+    },
+    gettkrecordrank(res) {
+      this.showloading();
+      if (res.data.error) {
+        this.showalert(res.data.message, "info");
+        return;
+      }
+      console.log(res.data.result);
+      this.$refs.trainingranklist.modalshow = true;
+      this.$refs.trainingranklist.items = res.data.result;
+      this.$refs.trainingranklist.totalrows = this.$refs.trainingranklist.items.length;
+    },
+    showuserrank(res) {
+      if (res.data.error) {
+        this.showalert(res.data.message, "info");
+        return;
+      }
+      this.rank = this.rank.replace("rankstr", res.data.result[0].rank);
+    },
+    testsession() {
+      sessionStorage.setItem("test", "ffff");
+    },
+    testgetsession() {
+      sessionStorage.getItem("test");
+      alert(sessionStorage.getItem("test"));
+    },
+    testother() {
+      alert("afsfsdf");
+      //axios.get('/sys/getuserrankbyclass?token='+this.user.token+'&lesson='+this.lessonname+'&classno='+this.user.info.baseinfo.classno)
+      axios
+        .get(
+          "/sys/getuserrankbyschool?token=" +
+            this.user.token +
+            "&lesson=" +
+            this.lessonname
+        )
+        .then(function(res) {})
+        .catch(function(err) {});
     }
   }
 };

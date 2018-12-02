@@ -4,8 +4,8 @@
     <b-navbar-brand href="#">键盘指法练习</b-navbar-brand>
     <b-collapse is-nav id="nav_collapse">
       <b-navbar-nav>
-        <b-nav-item href="#">我的成绩列表</b-nav-item>
-        <b-nav-item href="#">Disabled</b-nav-item>
+        <b-nav-item href="#" @click="$emit('showtraningrecord')" v-show="login">我的成绩列表</b-nav-item>
+        <b-nav-item href="#" @click="$emit('showtraningrank')">查看排名</b-nav-item>
       </b-navbar-nav>
       <!-- Right aligned nav items -->
       <b-navbar-nav class="ml-auto">
@@ -18,7 +18,7 @@
             size="sm"
             class="mr-sm-2"
             type="text"
-            v-model.trim="userinfo.username"
+            ref="username"
             placeholder="用户名"
           />
           <b-form-input
@@ -26,7 +26,7 @@
             size="sm"
             class="mr-sm-2"
             type="password"
-            v-model="userinfo.password"
+            ref="password"
             placeholder="密码"
           />
           <b-button size="sm" type="submit" class="my-2 my-sm-0" id="loginbutton">
@@ -47,9 +47,9 @@
         <b-nav-item-dropdown right v-else>
           <!-- Using button-content slot -->
           <template slot="button-content">
-            <em>{{userinfo.username}}</em>
+            <em>{{user.info.username}}</em>
           </template>
-          <b-dropdown-item href="#" @click="$emit('openlessonEvent')">修改课程</b-dropdown-item>
+          <b-dropdown-item v-show="isadmin" href="#" @click="$emit('openlessonEvent')">修改课程</b-dropdown-item>
           <b-dropdown-item href="#" @click="signout">退出</b-dropdown-item>
         </b-nav-item-dropdown>
       </b-navbar-nav>
@@ -64,13 +64,16 @@ axios.defaults.baseURL = "http://192.168.123.151:3000";
 export default {
   data() {
     return {
+      isadmin:undefined,
       login: false,
       loading: false,
-      userinfo: {
-        username: "",
-        password: "",
-        id: ""
-      },
+      user:null,
+      //userinfo: {
+      //  username: "",
+      //  password: "",
+      //  id: ""
+      //},
+      ///userotherinfo:{},
       logintip: {
         status: false,
         message: "default"
@@ -79,16 +82,17 @@ export default {
     };
   },
   mounted() {
-    //console.log("asfaf"+sessionStorage.getItem('token'))
-    let token = sessionStorage.getItem("token");
-    console.log("token:" + token);
-    let self = this;
-    if (token) {
+    console.log(sessionStorage.getItem("user"))
+    let user=JSON.parse(sessionStorage.getItem("user"));
+    let self = this;    
+    if (user) {
       axios
-        .post("/sys/validsignin", { token: token })
+        .post("/sys/validsignin", { token: user.token })
         .then(this.getusercache)
         .catch(function(error) {
           self.login = false;
+          self.user=null
+          sessionStorage.removeItem('user')
         });
     }
     axios
@@ -98,18 +102,25 @@ export default {
   },
   watch: {
     login: function() {
-      this.$emit("loginevent", this.login);
+      //this.$emit("loginevent", this.login);
+      this.$emit('loginevent',this.user)
     }
   },
   methods: {
     //刷新页面后获取session中的用户信息
     getusercache(res) {
       if (res.data.signin) {
-        this.userinfo.username = res.data.userinfo.username;
-        this.userinfo.id = res.data.userinfo.id;
+        // this.userinfo.username = res.data.userinfo.username;
+        // this.userinfo.id = res.data.userinfo.id;
+        // this.userotherinfo=res.data.userotherinfo;
+        this.user=JSON.parse(sessionStorage.getItem('user'));
         this.login = true;
         return;
       } else {
+        if(this.user){
+          this.user=null
+          sessionStorage.removeItem('user')
+        }
         this.login = false;
       }
     },
@@ -121,21 +132,18 @@ export default {
         retrun;
       }
       this.lessonlist = res.data.lessonlist;
-    },
-    gettklesson(res) {
-      //if(res.data.error)
+      this.$emit('execlessonEvent',0);
     },
     signin(evt) {
       evt.preventDefault();
       this.loading = true;
       let self = this;
-      //axios.post('',{
-      //method:'POST',
-      //url:'',
-      //data:self.userinfo
-      //})
+      let userinfo={
+        username:this.$refs.username.localValue,
+        password:this.$refs.password.localValue
+      }
       axios
-        .post("/sys/login", self.userinfo)
+        .post("/sys/login", userinfo)
         .then(function(res) {
           self.loading = false;
           if (res.data.error) {
@@ -143,9 +151,15 @@ export default {
             self.logintip.status = true;
             return;
           }
-          sessionStorage.setItem("token", res.data.token);
+          self.user={
+            token:res.data.token,
+            info:res.data.userotherinfo
+          };
+          sessionStorage.setItem("user", JSON.stringify(self.user));
           self.login = true;
-          self.userinfo = res.data.userinfo;
+          console.log(self.user)
+          //self.userinfo = res.data.userinfo;
+          // self.userotherinfo=res.data.userotherinfo;
         })
         .catch(function(err) {
           self.loading = false;
@@ -153,10 +167,12 @@ export default {
         });
     },
     signout() {
-      sessionStorage.removeItem("token");
+      sessionStorage.removeItem("user");
+      this.user=null
       this.login = false;
-      this.userinfo.username = "";
-      this.userinfo.password = "";
+      //this.userinfo.username = "";
+      // this.userinfo.password = "";
+      // this.userotherinfo={};
     },
     logintipshow() {
       setTimeout(() => {
