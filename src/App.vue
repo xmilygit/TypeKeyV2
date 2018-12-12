@@ -30,7 +30,7 @@
       <b-row style="padding-bottom:20px;">
         <b-col>
           <b-button variant="success" v-show="lessonname.length>0">
-            <i class="material-icons chrome_reader_mode">chrome_reader_mode</i>
+            <i class="material-icons buttonoffset">import_contacts</i>
             当前课程：{{lessonname}}
           </b-button>
           <b-button variant="success">
