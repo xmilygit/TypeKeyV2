@@ -103,6 +103,7 @@ export default {
   watch: {
     login: function() {
       //this.$emit("loginevent", this.login);
+      this.isadmin=this.user?this.user.info.admin:false;
       this.$emit('loginevent',this.user)
     }
   },
@@ -151,9 +152,10 @@ export default {
             self.logintip.status = true;
             return;
           }
+          console.log(res.data)
           self.user={
             token:res.data.token,
-            info:res.data.userotherinfo
+            info:res.data.userinfo,
           };
           sessionStorage.setItem("user", JSON.stringify(self.user));
           self.login = true;

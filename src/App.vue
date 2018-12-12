@@ -30,7 +30,7 @@
       <b-row style="padding-bottom:20px;">
         <b-col>
           <b-button variant="success" v-show="lessonname.length>0">
-            <i class="material-icons buttonoffset">check</i>
+            <i class="material-icons chrome_reader_mode">chrome_reader_mode</i>
             当前课程：{{lessonname}}
           </b-button>
           <b-button variant="success">
@@ -96,6 +96,7 @@
 </template>
 
 <script>
+// 新增课程后课程选择列表未刷新
 import mynavbar from "./components/mynavbar.vue";
 import myloading from "./components/loading.vue";
 import myalert from "./components/myalert.vue";
