@@ -20,9 +20,9 @@
       v-model="modalshow"
       cancel-title="取消"
       ok-title="保存成绩"
-      @cancel="gotoReady"
-      @ok="gotoReady"
       :ok-disabled="!userislogin"
+      @hidden="gotoReady"
+      @ok="gotoSave"
     >
       <p class="my-4">本次练习综合成绩为：{{result}}</p>
     </b-modal>
@@ -90,7 +90,7 @@
         </b-col>
       </b-row>
       <!-- <b-button @click="testother">setsession</b-button>
-      <b-button @click="testgetsession">getsession</b-button> -->
+      <b-button @click="testgetsession">getsession</b-button>-->
     </b-container>
   </div>
 </template>
@@ -172,9 +172,12 @@ export default {
         this.userislogin = false;
       }
     },
+    gotoSave() {
+      if (this.userislogin) this.saverecord();
+    },
     gotoReady(evt) {
       console.log(evt);
-      if (this.userislogin && evt.trigger != "cancel") this.saverecord();
+      console.log(evt.trigger);
       time_h = 0;
       time_m = 0;
       time_s = 0;
