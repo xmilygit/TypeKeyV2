@@ -7,6 +7,12 @@
       @execlessonEvent="execlesson"
       @showtraningrecord="opentraningrecord"
       @showtraningrank="opentraningrank"
+      @signin="signin"
+      @signout='signout'
+      :user="user"
+      :showsigninloading="showsigninloading"
+      :lessonlist="lessonlist"
+      :logintip="logintip"
     ></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
@@ -131,7 +137,13 @@ export default {
       user: null,
       userislogin: false,
       lessonname: "",
-      rank: null
+      rank: null,
+      lessonlist: null,
+      showsigninloading:false,
+      logintip: {
+        status: false,
+        message: "default"
+      },
     };
   },
   components: {
@@ -158,12 +170,14 @@ export default {
     }
   },
   mounted() {
+    this.getlessonlist();
     window.addEventListener("keypress", this.whenKeyPress);
   },
   beforeDestroy() {
     window.removeEventListener("keypress", this.whenKeyPress);
   },
   methods: {
+    //判断是否登录
     islogin(val) {
       this.user = val;
       if (val) {
@@ -172,9 +186,11 @@ export default {
         this.userislogin = false;
       }
     },
+    //转到保存
     gotoSave() {
       if (this.userislogin) this.saverecord();
     },
+    //初始界面
     gotoReady(evt) {
       console.log(evt);
       console.log(evt.trigger);
@@ -199,6 +215,7 @@ export default {
       }
       window.addEventListener("keypress", this.whenKeyPress);
     },
+    ///开始练习
     training(traiStr) {
       //console.log(this);
       this.wordCount = this.str.length;
@@ -207,6 +224,7 @@ export default {
       this.timecount();
       this.totalperMinute();
     },
+    //获取下一行练习数据
     getNewRow(begin, end) {
       if (end - begin != 12) {
         alert("begin-end mast be equst 12");
@@ -222,6 +240,7 @@ export default {
         this.$refs.keyStyle[i].className = "btn keybutton btn-secondary";
       }
     },
+    //当按键被按下时执行判断
     whenKeyPress(e) {
       if (!time_begin) return;
       var key = e.which;
@@ -268,6 +287,7 @@ export default {
         this.getNewRow(begin, end);
       }
     },
+    //统计每分钟的百分率
     totalperMinute() {
       if (time_begin) {
         let totalSecond = time_h * 3600 + time_m * 60 + time_s - 1;
@@ -279,6 +299,7 @@ export default {
         window.setTimeout(this.totalperMinute, 5000);
       }
     },
+    //计时器
     timecount() {
       let temp_s = "";
       let temp_m = "";
@@ -311,6 +332,7 @@ export default {
         window.setTimeout(this.timecount, 1000);
       }
     },
+    //保存练习记录
     saverecord() {
       let user = this.$refs.navbar_c.user;
       this.showloading(null, true);
@@ -323,13 +345,14 @@ export default {
       };
       let self = this;
       axios
-        .post("/sys/addtkrecord", { record: record, token: user.token })
+        .post("/typekey/addtkrecord", { record: record, token: user.token })
         .then(this.saveingrecord)
         .catch(function(err) {
           self.showloading();
           self.showalert("系统错误，保存失败！：" + err.message, "danger");
         });
     },
+    //保存练习记录回调
     saveingrecord(res) {
       this.showloading();
       if (res.data.error) {
@@ -338,12 +361,14 @@ export default {
       }
       this.showalert("保存成功！", "success", 3);
     },
+    //显示loading
     showloading(message, show) {
       message = message || "正在保存...";
       this.$refs.loading_c.title = message;
       if (show) this.$refs.loading_c.showloading();
       else this.$refs.loading_c.hidderloading();
     },
+    //显示提示
     showalert(message, variant, dismissSecs) {
       message = message || "保存成功！";
       variant = variant || "success";
@@ -353,21 +378,25 @@ export default {
       this.$refs.alert_c.dismissSecs = dismissSecs;
       this.$refs.alert_c.showAlert();
     },
+    //打开课程modal
     openlesson() {
       this.$refs.lessonmanage.modalshow = true;
     },
+    //加载课程
     execlesson(index) {
       this.lessonname = this.$refs.navbar_c.lessonlist[index].lessonname;
       this.showloading("正在加载课程数据...", true);
       axios
         .get(
-          "/sys/getlessonbyid?id=" + this.$refs.navbar_c.lessonlist[index]._id
+          "/typekey/getlessonbyid?id=" +
+            this.$refs.navbar_c.lessonlist[index]._id
         )
         .then(this.execinglesson)
         .catch(function(err) {
           this.showalert("系统错误！错误原因：" + err.message, "danger");
         });
     },
+    //加载课程回调
     execinglesson(res) {
       this.showloading();
       if (res.data.error) {
@@ -376,6 +405,7 @@ export default {
       }
       this.str = res.data.result.lessoncontent;
     },
+    //打开练习记录
     opentraningrecord() {
       let user = this.$refs.navbar_c.user;
       if (!user) {
@@ -386,7 +416,10 @@ export default {
       this.showloading("正在加载数据...", true);
       axios
         .get(
-          "/sys/gettkrecord?lesson=" + this.lessonname + "&token=" + user.token
+          "/typekey/gettkrecord?lesson=" +
+            this.lessonname +
+            "&token=" +
+            user.token
         )
         .then(this.gettkrecord)
         .catch(function(err) {
@@ -394,25 +427,26 @@ export default {
           self.showalert(err.message, "danger");
         });
     },
+    //打开练习记录回调
     opentraningrank(eventtype) {
       let self = this;
       this.showloading("正在加载数据...", true);
       this.rank = "成绩排名";
-      let querypath = "/sys/gettkrecordrank?lesson=" + this.lessonname;
+      let querypath = "/typekey/gettkrecordrank?lesson=" + this.lessonname;
       let rankpath = undefined;
       if (this.user) {
         switch (eventtype) {
           case "class":
             this.rank = "您当前课程的班级排名为：第rankstr名！";
             rankpath =
-              "/sys/getuserrankbyclass?token=" +
+              "/typekey/getuserrankbyclass?token=" +
               this.user.token +
               "&lesson=" +
               this.lessonname +
               "&classno=" +
               this.user.info.baseinfo.classno;
             querypath =
-              "/sys/gettkrecordrankbyclass?lesson=" +
+              "/typekey/gettkrecordrankbyclass?lesson=" +
               this.lessonname +
               "&classno=" +
               this.user.info.baseinfo.classno +
@@ -424,7 +458,7 @@ export default {
           //   break;
           default:
             rankpath =
-              "/sys/getuserrankbyschool?token=" +
+              "/typekey/getuserrankbyschool?token=" +
               this.user.token +
               "&lesson=" +
               this.lessonname;
@@ -450,7 +484,7 @@ export default {
           });
       }
     },
-
+    //获取练习记录回调
     gettkrecord(res) {
       this.showloading();
       if (res.data.error) {
@@ -461,6 +495,7 @@ export default {
       this.$refs.trainingrecordlist.items = res.data.result;
       this.$refs.trainingrecordlist.totalrows = this.$refs.trainingrecordlist.items.length;
     },
+    //获取练习记录排名回调
     gettkrecordrank(res) {
       this.showloading();
       if (res.data.error) {
@@ -472,12 +507,67 @@ export default {
       this.$refs.trainingranklist.items = res.data.result;
       this.$refs.trainingranklist.totalrows = this.$refs.trainingranklist.items.length;
     },
+    //显示用户排名回调
     showuserrank(res) {
       if (res.data.error) {
         this.showalert(res.data.message, "info");
         return;
       }
       this.rank = this.rank.replace("rankstr", res.data.result[0].rank);
+    },
+    //获取所有课程
+    getlessonlist() {
+      axios
+        .get("/typekey/getalltklesson")
+        .then(this.getlessonlist_cb)
+        .catch(function(error) {});
+    },
+    //获取所有课程回调
+    getlessonlist_cb(res) {
+      if (res.data.error) {
+        console.log(res.data.message);
+        retrun;
+      }
+      this.lessonlist = res.data.lessonlist;
+    },
+    //用户登录
+    signin(userinfo) {
+      let self=this
+      this.showsigninloading = true;
+      axios
+        .post("/sys/login", userinfo)
+        .then(this.signin_cb)
+        .catch(function(err) {
+          self.showsigninloading = false;
+          self.logintip = {
+            status: true,
+            message: "系统故障：" + err.message
+          };
+        });
+    },
+    //用户登录回调
+    signin_cb(res) {
+      this.showsigninloading = false;
+      if (res.data.error) {
+        this.logintip.message = res.data.message;
+        this.logintip.status = true;
+        alert("error1"+res.data.message)
+        return;
+      }
+      //console.log(res.data);
+      this.user = {
+        token: res.data.token,
+        info: res.data.userinfo
+      };
+      sessionStorage.setItem("user", JSON.stringify(this.user));
+      //self.login = true;
+      //console.log(self.user);
+    },
+    //退出用户登录
+    signout() {
+      sessionStorage.removeItem("user");
+      this.user = null;
+      //this.login = false;
     },
     testsession() {
       sessionStorage.setItem("test", "ffff");
@@ -491,7 +581,7 @@ export default {
       //axios.get('/sys/getuserrankbyclass?token='+this.user.token+'&lesson='+this.lessonname+'&classno='+this.user.info.baseinfo.classno)
       axios
         .get(
-          "/sys/getuserrankbyschool?token=" +
+          "/typekey/getuserrankbyschool?token=" +
             this.user.token +
             "&lesson=" +
             this.lessonname

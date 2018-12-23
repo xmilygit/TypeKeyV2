@@ -123,7 +123,7 @@ export default {
       //this.items.splice(index,1)
       let self = this;
       axios
-        .get("/sys/deletelesson?id=" + item._id)
+        .get("/typekey/deletelesson?id=" + item._id)
         .then(this.deletelesson)
         .catch(function(err) {
           self.message = "系统出错：" + err.message;
@@ -151,7 +151,7 @@ export default {
       let self = this;
       axios
         .get(
-          "/sys/getalltklessonpaging?currentpage=" +
+          "/typekey/getalltklessonpaging?currentpage=" +
             this.currentPage +
             "&keyword=" +
             this.keyword
@@ -184,7 +184,7 @@ export default {
 
       if (this.form.id) {
         axios
-          .post("/sys/edittklesson", {
+          .post("/typekey/edittklesson", {
             lessoninfo: this.form
           })
           .then(this.editinglesson)
@@ -199,7 +199,7 @@ export default {
       }
 
       axios
-        .post("/sys/savetklesson", { lessoninfo: this.form })
+        .post("/typekey/savetklesson", { lessoninfo: this.form })
         .then(this.saveinglesson)
         .catch(function(err) {
           //self.$emit("displayLoading");
