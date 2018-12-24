@@ -2,16 +2,30 @@
   <b-modal
     id="modaltktraininglist"
     ref="modaltktraininglist"
-    :title="rank"
     hide-footer
     v-model="modalshow"
     size="lg"
   >
+  <template slot="modal-title">
+    <span v-if="rank.indexOf('rankstr')>=0" style="line-height:20px;">正在计算您的排名...<img
+              src="../assets/loading.gif"
+              style="width:20px;height:20px;margin-right:10px;"
+            ></span>
+    <span v-else>
+      {{this.rank}}
+    </span>
+  </template>
     <b-tabs>
       <!-- Add your b-tab components here-->
       <template slot="tabs">
-        <b-nav-item v-show="user" ref="tab1" href="#" @click="eventproccess('class')" :active="!active2">班级排名</b-nav-item>
-        <b-nav-item ref="tab2" href="#" @click="eventproccess('school')" :active="active2">全校排名</b-nav-item>
+        <b-nav-item
+          v-show="user"
+          ref="tab1"
+          href="#"
+          @click="opentraningrank('班级排名')"
+          :active="!active2"
+        >班级排名</b-nav-item>
+        <b-nav-item ref="tab2" href="#" @click="opentraningrank('全校排名')" :active="active2">全校排名</b-nav-item>
       </template>
     </b-tabs>
     <b-table
@@ -31,14 +45,15 @@
 
 <script>
 import moment from "moment";
+import axios from "axios";
 export default {
   data() {
     return {
-      active2: this.user?false:true,
+      active2: this.user ? false : true,
       totalrows: 0,
       perPage: 7,
       currentPage: 1,
-      modalshow: false,
+      modalshow: this.show,
       fields: [
         { key: "index", label: "名次" },
         // { key: "lesson", label: "课程名称", sortable: true },
@@ -55,16 +70,115 @@ export default {
           }
         }
       ],
-      items: []
+      items: [],
+      rank: ""
     };
   },
-  props:['user','rank'],
-  methods: {
-    eventproccess(type) {
-      if (type == "class") this.active2 = false;
-      else this.active2 = true;
-      this.$emit("showrank", type);
+  props: ["user", "show", "lessonname"],
+  watch: {
+    show: function(val, oldval) {
+      this.modalshow=val;
+      if (val) this.opentraningrank();
     }
+  },
+  methods: {
+    // eventproccess(type) {
+    //   if (type == "class") this.active2 = false;
+    //   else this.active2 = true;
+    //   this.$emit("showrank", type);
+    // },
+    //打开练习记录回调
+    opentraningrank(displaywho) {
+      this.rank='';
+      if (displaywho == "班级排名") this.active2 = false;
+      else this.active2 = true;
+
+      let self = this;
+      //this.showloading("正在加载数据...", true);
+      this.rank = "当前课程全校排名";
+      let querypath = "/typekey/gettkrecordrank?lesson=" + this.lessonname;
+      let rankpath = undefined;
+      if (this.user) {
+        switch (displaywho) {
+          case "班级排名":
+            this.rank = "您当前课程的班级排名为：第rankstr名！";
+            rankpath =
+              "/typekey/getuserrankbyclass?token=" +
+              this.user.token +
+              "&lesson=" +
+              this.lessonname +
+              "&classno=" +
+              this.user.info.classno;
+            querypath =
+              "/typekey/gettkrecordrankbyclass?lesson=" +
+              this.lessonname +
+              "&classno=" +
+              this.user.info.classno +
+              "&token=" +
+              this.user.token;
+            break;
+          case "全校排名":
+          //   querypath=
+          //   break;
+          default:
+            rankpath =
+              "/typekey/getuserrankbyschool?token=" +
+              this.user.token +
+              "&lesson=" +
+              this.lessonname;
+            this.rank = "您当前课程的全校排名为：第rankstr名！";
+            break;
+        }
+      } else {
+      }
+
+      axios
+        .get(querypath)
+        .then(this.gettkrecordrank)
+        .catch(function(err) {
+          //self.showloading();
+          //self.showalert(err.message, "danger");
+        });
+      if (rankpath) {
+        axios
+          .get(rankpath)
+          .then(this.showuserrank)
+          .catch(function(err) {
+            //self.showalert(err.message, "danger");
+          });
+      }
+    },
+    //获取练习记录排名回调
+    gettkrecordrank(res) {
+      //this.showloading();
+      if (res.data.error) {
+        //this.showalert(res.data.message, "info");
+        return;
+      }
+      //console.log(res.data.result);
+      //this.$refs.trainingranklist.modalshow = true;
+      this.items = res.data.result;
+      this.totalrows = this.items.length;
+    },
+    //显示用户排名回调
+    showuserrank(res) {
+      if (res.data.error) {
+        //this.showalert(res.data.message, "info");
+        return;
+      }
+      if (!res.data.result) {
+        this.rank = res.data.message;
+        return;
+      }
+      if(res.data.result.length<=0){
+this.rank = this.rank.replace("rankstr", '1');
+      }else{
+      this.rank = this.rank.replace("rankstr", res.data.result[0].rank+1);
+      }
+    },
+    // modalhidden(){
+
+    // },
   }
 };
 </script>
