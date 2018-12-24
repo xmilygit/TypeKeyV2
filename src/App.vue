@@ -551,7 +551,6 @@ export default {
       if (res.data.error) {
         this.logintip.message = res.data.message;
         this.logintip.status = true;
-        alert("error1"+res.data.message)
         return;
       }
       //console.log(res.data);
