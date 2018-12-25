@@ -5,6 +5,7 @@
     hide-footer
     v-model="modalshow"
     size="lg"
+    @hidden="$emit('hidden')"
   >
   <template slot="modal-title">
     <span v-if="rank.indexOf('rankstr')>=0" style="line-height:20px;">正在计算您的排名...<img
@@ -77,16 +78,13 @@ export default {
   props: ["user", "show", "lessonname"],
   watch: {
     show: function(val, oldval) {
-      this.modalshow=val;
-      if (val) this.opentraningrank();
+      if (val){
+        this.modalshow=val;
+        this.opentraningrank();
+      } 
     }
   },
   methods: {
-    // eventproccess(type) {
-    //   if (type == "class") this.active2 = false;
-    //   else this.active2 = true;
-    //   this.$emit("showrank", type);
-    // },
     //打开练习记录回调
     opentraningrank(displaywho) {
       this.rank='';
@@ -170,15 +168,8 @@ export default {
         this.rank = res.data.message;
         return;
       }
-      if(res.data.result.length<=0){
-this.rank = this.rank.replace("rankstr", '1');
-      }else{
-      this.rank = this.rank.replace("rankstr", res.data.result[0].rank+1);
-      }
+      this.rank = this.rank.replace("rankstr", res.data.result);
     },
-    // modalhidden(){
-
-    // },
   }
 };
 </script>

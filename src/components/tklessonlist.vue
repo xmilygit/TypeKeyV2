@@ -5,6 +5,7 @@
     title="课程列表"
     hide-footer
     v-model="modalshow"
+    @hidden="$emit('hidden')"
   >
     <b-alert
       :show="dismissCountDown"
@@ -69,7 +70,7 @@
           <b-btn @click.stop="row.toggleDetails">详细</b-btn>
         </b-button-group>
       </template>
-      <template slot="row-details" slot-scope="row">{{row.item.lessoncontent}}</template>
+      <template slot="row-details" slot-scope="row"><span style="word-wrap:break-word;word-break:break-all;">{{row.item.lessoncontent}}</span></template>
     </b-table>
     <b-pagination align="center" :total-rows="totalrows" v-model="currentPage" :per-page="perPage"></b-pagination>
   </b-modal>
@@ -101,9 +102,16 @@ export default {
       }
     };
   },
+  props:['show','user'],
   watch: {
     currentPage: function() {
       this.loadlessonlist();
+    },
+    show: function(val, oldval) {
+      if (val){
+        this.modalshow=val;
+        this.loadlessonlist();
+      } 
     }
   },
   mounted() {
@@ -120,7 +128,6 @@ export default {
       this.dismissCountDown = dismissCountDown;
     },
     del(index, item) {
-      //this.items.splice(index,1)
       let self = this;
       axios
         .get("/typekey/deletelesson?id=" + item._id)

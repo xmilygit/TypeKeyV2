@@ -1,12 +1,10 @@
 <template>
   <div id="app">
     <mynavbar
-      ref="navbar_c"
-      @loginevent="islogin"
-      @openlessonEvent="openlesson"
+      @openlessonEvent="lessonmodalshow=true"
       @execlessonEvent="execlesson"
-      @showtraningrecord="opentraningrecord"
-      @showtraningrank="opentraningrank"
+      @showtraningrecord="trainmodalshow=true"
+      @showtraningrank="rankmodalshow=true"
       @signin="signin"
       @signout="signout"
       :user="user"
@@ -16,14 +14,13 @@
     ></mynavbar>
     <myalert ref="alert_c"></myalert>
     <myloading ref="loading_c"></myloading>
-    <!-- <myadminlesson @displayLoading="showloading" @displayAlert="showalert" ref="addlesson"></myadminlesson> -->
-    <mytklessonlist ref="lessonmanage"></mytklessonlist>
-    <trainingrecordlist ref="trainingrecordlist"></trainingrecordlist>
+    <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false"></mytklessonlist>
+    <trainingrecordlist @hidden="trainmodalshow=false" :user="user" :lessonname="lessonname" :show="trainmodalshow"></trainingrecordlist>
     <trainingranklist
-      ref="trainingranklist"
       :user="user"
       :show="rankmodalshow"
       :lessonname="lessonname"
+      @hidden="rankmodalshow=false"
     ></trainingranklist>
     <b-modal
       id="modal1"
@@ -31,9 +28,9 @@
       v-model="modalshow"
       cancel-title="取消"
       ok-title="保存成绩"
-      :ok-disabled="!userislogin"
+      :ok-disabled="!user"
       @hidden="gotoReady"
-      @ok="gotoSave"
+      @ok="saverecord"
     >
       <p class="my-4">本次练习综合成绩为：{{result}}</p>
     </b-modal>
@@ -100,8 +97,6 @@
           </b-button>
         </b-col>
       </b-row>
-      <!-- <b-button @click="testother">setsession</b-button>
-      <b-button @click="testgetsession">getsession</b-button>-->
     </b-container>
   </div>
 </template>
@@ -137,13 +132,14 @@ export default {
       wordCount: 0,
       perMinute: 0,
       countTime: "开  始",
+      result: 0,
       modalshow: false,
       rankmodalshow: false,
-      result: 0,
+      trainmodalshow:false,
+      lessonmodalshow:false,
       user: null,
-      userislogin: false,
+      //userislogin: false,
       lessonname: "",
-      rank: null,
       lessonlist: null,
       showsigninloading: false,
       logintip: {
@@ -184,19 +180,6 @@ export default {
     window.removeEventListener("keypress", this.whenKeyPress);
   },
   methods: {
-    //判断是否登录
-    islogin(val) {
-      this.user = val;
-      if (val) {
-        this.userislogin = true;
-      } else {
-        this.userislogin = false;
-      }
-    },
-    //转到保存
-    gotoSave() {
-      if (this.userislogin) this.saverecord();
-    },
     //初始界面
     gotoReady(evt) {
       console.log(evt);
@@ -341,7 +324,7 @@ export default {
     },
     //保存练习记录
     saverecord() {
-      let user = this.$refs.navbar_c.user;
+      if (!this.user) return;
       this.showloading(null, true);
       let record = {
         lesson: this.lessonname,
@@ -352,7 +335,10 @@ export default {
       };
       let self = this;
       axios
-        .post("/typekey/addtkrecord", { record: record, token: user.token })
+        .post("/typekey/addtkrecord", {
+          record: record,
+          token: this.user.token
+        })
         .then(this.saveingrecord)
         .catch(function(err) {
           self.showloading();
@@ -385,10 +371,7 @@ export default {
       this.$refs.alert_c.dismissSecs = dismissSecs;
       this.$refs.alert_c.showAlert();
     },
-    //打开课程modal
-    openlesson() {
-      this.$refs.lessonmanage.modalshow = true;
-    },
+
     //加载课程
     execlesson(index) {
       this.lessonname = this.lessonlist[index].lessonname;
@@ -409,117 +392,7 @@ export default {
       }
       this.str = res.data.result.lessoncontent;
     },
-    //打开练习记录
-    opentraningrecord() {
-      let user = this.user;
-      if (!user) {
-        this.showalert("请先登录!", "info", 5);
-        return;
-      }
-      let self = this;
-      this.showloading("正在加载数据...", true);
-      axios
-        .get(
-          "/typekey/gettkrecord?lesson=" +
-            this.lessonname +
-            "&token=" +
-            user.token
-        )
-        .then(this.gettkrecord)
-        .catch(function(err) {
-          self.showloading();
-          self.showalert(err.message, "danger");
-        });
-    },
-    //打开练习记录回调(准备移动至到子组件)
-    opentraningrank(eventtype) {
-      this.rankmodalshow = true;
-      // let self = this;
-      // this.showloading("正在加载数据...", true);
-      // this.rank = "成绩排名";
-      // let querypath = "/typekey/gettkrecordrank?lesson=" + this.lessonname;
-      // let rankpath = undefined;
-      // if (this.user) {
-      //   switch (eventtype) {
-      //     case "class":
-      //       this.rank = "您当前课程的班级排名为：第rankstr名！";
-      //       rankpath =
-      //         "/typekey/getuserrankbyclass?token=" +
-      //         this.user.token +
-      //         "&lesson=" +
-      //         this.lessonname +
-      //         "&classno=" +
-      //         this.user.info.baseinfo.classno;
-      //       querypath =
-      //         "/typekey/gettkrecordrankbyclass?lesson=" +
-      //         this.lessonname +
-      //         "&classno=" +
-      //         this.user.info.baseinfo.classno +
-      //         "&token=" +
-      //         this.user.token;
-      //       break;
-      //     case "school":
-      //     //   querypath=
-      //     //   break;
-      //     default:
-      //       rankpath =
-      //         "/typekey/getuserrankbyschool?token=" +
-      //         this.user.token +
-      //         "&lesson=" +
-      //         this.lessonname;
-      //       this.rank = "您当前课程的全校排名为：第rankstr名！";
-      //       break;
-      //   }
-      // } else {
-      // }
-
-      // axios
-      //   .get(querypath)
-      //   .then(this.gettkrecordrank)
-      //   .catch(function(err) {
-      //     self.showloading();
-      //     self.showalert(err.message, "danger");
-      //   });
-      // if (rankpath) {
-      //   axios
-      //     .get(rankpath)
-      //     .then(this.showuserrank)
-      //     .catch(function(err) {
-      //       self.showalert(err.message, "danger");
-      //     });
-      // }
-    },
-    //获取练习记录回调
-    gettkrecord(res) {
-      this.showloading();
-      if (res.data.error) {
-        this.showalert(res.data.message);
-        return;
-      }
-      this.$refs.trainingrecordlist.modalshow = true;
-      this.$refs.trainingrecordlist.items = res.data.result;
-      this.$refs.trainingrecordlist.totalrows = this.$refs.trainingrecordlist.items.length;
-    },
-    //获取练习记录排名回调(移动至子组件内)
-    // gettkrecordrank(res) {
-    //   this.showloading();
-    //   if (res.data.error) {
-    //     this.showalert(res.data.message, "info");
-    //     return;
-    //   }
-    //   console.log(res.data.result);
-    //   this.$refs.trainingranklist.modalshow = true;
-    //   this.$refs.trainingranklist.items = res.data.result;
-    //   this.$refs.trainingranklist.totalrows = this.$refs.trainingranklist.items.length;
-    // },
-    // //显示用户排名回调(移动至子组件内)
-    // showuserrank(res) {
-    //   if (res.data.error) {
-    //     this.showalert(res.data.message, "info");
-    //     return;
-    //   }
-    //   this.rank = this.rank.replace("rankstr", res.data.result[0].rank);
-    // },
+    
     //获取所有课程
     getlessonlist() {
       axios
@@ -560,20 +433,16 @@ export default {
         this.logintip.status = true;
         return;
       }
-      //console.log(res.data);
       this.user = {
         token: res.data.token,
         info: res.data.userinfo
       };
       sessionStorage.setItem("user", JSON.stringify(this.user));
-      //self.login = true;
-      //console.log(self.user);
     },
     //退出用户登录
     signout() {
       sessionStorage.removeItem("user");
       this.user = null;
-      //this.login = false;
     },
     //当未退出刷新页面时
     whenrefresh() {
@@ -585,7 +454,6 @@ export default {
           .post("/sys/validsignin", { token: user.token })
           .then(this.whenrefresh_cb)
           .catch(function(error) {
-            //self.login = false;
             self.user = null;
             sessionStorage.removeItem("user");
           });
@@ -595,14 +463,12 @@ export default {
     whenrefresh_cb(res) {
       if (res.data.signin) {
         this.user = JSON.parse(sessionStorage.getItem("user"));
-        //this.login = true;
         return;
       } else {
         if (this.user) {
           this.user = null;
           sessionStorage.removeItem("user");
         }
-        //this.login = false;
       }
     },
     testsession() {

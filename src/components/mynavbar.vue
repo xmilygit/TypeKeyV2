@@ -65,123 +65,27 @@
 
 
 <script>
-import axios from "axios";
-// axios.defaults.baseURL = "http://192.168.123.151:3000";
 export default {
   data() {
     return {
-      // isadmin:undefined,
-      // login: false,
-      // loading: false,
-      // user:null,
-      // logintip: {
-      //   status: false,
-      //   message: "default"
-      // },
-      // lessonlist: [{ lessonname: "正在加载数据..." }]
     };
   },
   props:['lessonlist','showsigninloading','logintip','user'],
-  // mounted() {
-  //   console.log(sessionStorage.getItem("user"))
-  //   let user=JSON.parse(sessionStorage.getItem("user"));
-  //   let self = this;    
-  //   if (user) {
-  //     axios
-  //       .post("/sys/validsignin", { token: user.token })
-  //       .then(this.getusercache)
-  //       .catch(function(error) {
-  //         self.login = false;
-  //         self.user=null
-  //         sessionStorage.removeItem('user')
-  //       });
-  //   }
-  //   axios
-  //     .get("/typekey/getalltklesson")
-  //     .then(this.getlessonlist)
-  //     .catch(function(error) {});
-  // },
-  // watch: {
-  //   login: function() {
-  //     //this.$emit("loginevent", this.login);
-  //     this.isadmin=this.user?this.user.info.admin:false;
-  //     this.$emit('loginevent',this.user)
-  //   }
-  // },
+
   methods: {
-  //   //刷新页面后获取session中的用户信息
-  //   getusercache(res) {
-  //     if (res.data.signin) {
-  //       this.user=JSON.parse(sessionStorage.getItem('user'));
-  //       this.login = true;
-  //       return;
-  //     } else {
-  //       if(this.user){
-  //         this.user=null
-  //         sessionStorage.removeItem('user')
-  //       }
-  //       this.login = false;
-  //     }
-  //   },
-  //   //获取课程列表
-  //   getlessonlist(res) {
-  //     if (res.data.error) {
-  //       //alert错误
-  //       console.log(res.data.message);
-  //       retrun;
-  //     }
-  //     this.lessonlist = res.data.lessonlist;
-  //     this.$emit('execlessonEvent',0);
-  //   },
-    signin(evt) {
+     signin(evt) {
       evt.preventDefault();
-      //this.loading = true;
-      //let self = this;
       let userinfo={
         username:this.$refs.username.localValue,
         password:this.$refs.password.localValue
       }
       this.$emit('signin',userinfo)
-      // axios
-      //   .post("/sys/login", userinfo)
-      //   .then(function(res) {
-      //     self.loading = false;
-      //     if (res.data.error) {
-      //       self.logintip.message = res.data.message;
-      //       self.logintip.status = true;
-      //       return;
-      //     }
-      //     console.log(res.data)
-      //     self.user={
-      //       token:res.data.token,
-      //       info:res.data.userinfo,
-      //     };
-      //     sessionStorage.setItem("user", JSON.stringify(self.user));
-      //     self.login = true;
-      //     console.log(self.user)
-      //   })
-      //   .catch(function(err) {
-      //     self.loading = false;
-      //     self.logintip = { status: true, message: "系统故障：" + err.message };
-      //   });
     },
-  //   signout() {
-  //     sessionStorage.removeItem("user");
-  //     this.user=null
-  //     this.login = false;
-  //   },
     logintipshow() {
       setTimeout(() => {
         this.logintip.status = false;
       }, 5000);
     },
-  //   testevent(a,b,c){
-  //     console.log(a);
-  //     console.log(b)
-  //     for (var i in arguments) {
-  //       alert(arguments[i]);
-  //   }
-  //   }
   }
 };
 </script>
