@@ -396,7 +396,7 @@ export default {
     //获取所有课程
     getlessonlist() {
       axios
-        .get("/typekey/getalltklesson")
+        .get("/typekey/getalltklesson?sort=-sq")
         .then(this.getlessonlist_cb)
         .catch(function(error) {});
     },
