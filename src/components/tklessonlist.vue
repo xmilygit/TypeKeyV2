@@ -161,7 +161,9 @@ export default {
           "/typekey/getalltklessonpaging?currentpage=" +
             this.currentPage +
             "&keyword=" +
-            this.keyword
+            this.keyword+
+            "&sort="+
+            "-sq"
         )
         .then(this.showlesson)
         .catch(function(err) {
