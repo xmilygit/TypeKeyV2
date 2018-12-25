@@ -13,7 +13,7 @@
       :logintip="logintip"
     ></mynavbar>
     <myalert ref="alert_c"></myalert>
-    <myloading ref="loading_c" :title="loadbacktitle" @hidden="showloadingback=false" :show="showloadingback"></myloading>
+    <myloading :title="loadbacktitle" :show="showloadingback"></myloading>
     <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false"></mytklessonlist>
     <trainingrecordlist @hidden="trainmodalshow=false" :user="user" :lessonname="lessonname" :show="trainmodalshow"></trainingrecordlist>
     <trainingranklist
@@ -140,7 +140,6 @@ export default {
       showloadingback:false,
       loadbacktitle:"正在保存...",
       user: null,
-      //userislogin: false,
       lessonname: "",
       lessonlist: null,
       showsigninloading: false,
@@ -177,8 +176,6 @@ export default {
     this.whenrefresh();
     this.getlessonlist();
     window.addEventListener("keypress", this.whenKeyPress);
-    this.rankmodalshow=true
-    this.$refs.loading_c.showloading();
   },
   beforeDestroy() {
     window.removeEventListener("keypress", this.whenKeyPress);
@@ -361,9 +358,9 @@ export default {
     //显示loading
     showloading(message, show) {
       message = message || "正在保存...";
-      this.$refs.loading_c.title = message;
-      if (show) this.$refs.loading_c.showloading();
-      else this.$refs.loading_c.hidderloading();
+      this.loadbacktitle = message;
+      if (show) this.showloadingback=true;
+      else this.showloadingback=false;
     },
     //显示提示
     showalert(message, variant, dismissSecs) {
@@ -380,11 +377,13 @@ export default {
     execlesson(index) {
       this.lessonname = this.lessonlist[index].lessonname;
       this.showloading("正在加载课程数据...", true);
+      let self=this
       axios
         .get("/typekey/getlessonbyid?id=" + this.lessonlist[index]._id)
         .then(this.execinglesson)
         .catch(function(err) {
-          this.showalert("系统错误！错误原因：" + err.message, "danger");
+          self.showloading()
+          self.showalert("系统错误！错误原因：" + err.message, "danger");
         });
     },
     //加载课程回调
@@ -399,13 +398,19 @@ export default {
     
     //获取所有课程
     getlessonlist() {
+      this.showloading('正在加载数据...',true)
+      let self=this
       axios
         .get("/typekey/getalltklesson?sort=-sq")
         .then(this.getlessonlist_cb)
-        .catch(function(error) {});
+        .catch(function(error) {
+          self.showloading()
+          self.showalert("加载课程失败！错误原因：" + error, "danger");
+        });
     },
     //获取所有课程回调
     getlessonlist_cb(res) {
+      this.showloading()
       if (res.data.error) {
         console.log(res.data.message);
         retrun;
@@ -454,10 +459,12 @@ export default {
       let user = JSON.parse(sessionStorage.getItem("user"));
       let self = this;
       if (user) {
+        this.showloading('加载数据...',true)
         axios
           .post("/sys/validsignin", { token: user.token })
           .then(this.whenrefresh_cb)
           .catch(function(error) {
+            self.showloading()
             self.user = null;
             sessionStorage.removeItem("user");
           });
@@ -465,6 +472,7 @@ export default {
     },
     //刷新页面后获取session中的用户信息回调
     whenrefresh_cb(res) {
+      this.showloading()
       if (res.data.signin) {
         this.user = JSON.parse(sessionStorage.getItem("user"));
         return;
