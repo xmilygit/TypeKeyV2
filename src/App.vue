@@ -13,7 +13,7 @@
       :logintip="logintip"
     ></mynavbar>
     <myalert ref="alert_c"></myalert>
-    <myloading ref="loading_c"></myloading>
+    <myloading ref="loading_c" :title="loadbacktitle" @hidden="showloadingback=false" :show="showloadingback"></myloading>
     <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false"></mytklessonlist>
     <trainingrecordlist @hidden="trainmodalshow=false" :user="user" :lessonname="lessonname" :show="trainmodalshow"></trainingrecordlist>
     <trainingranklist
@@ -137,6 +137,8 @@ export default {
       rankmodalshow: false,
       trainmodalshow:false,
       lessonmodalshow:false,
+      showloadingback:false,
+      loadbacktitle:"正在保存...",
       user: null,
       //userislogin: false,
       lessonname: "",
@@ -175,6 +177,8 @@ export default {
     this.whenrefresh();
     this.getlessonlist();
     window.addEventListener("keypress", this.whenKeyPress);
+    this.rankmodalshow=true
+    this.$refs.loading_c.showloading();
   },
   beforeDestroy() {
     window.removeEventListener("keypress", this.whenKeyPress);

@@ -7,6 +7,7 @@
         :height="height"
         :loader="loader"
         :color="color"
+        @onCancel="$emit('hidden')"
         >
         <h4 slot="before" style="color:#000">{{title}}</h4>
         </loading>
@@ -25,29 +26,31 @@
     export default {
         data() {
             return {
-                isLoading: false,
+                isLoading: this.show,
                 fullPage: true,
                 width:50,
                 height:50,
                 loader:'Dots',
                 color:'#28a745',
-                title:'正在保存...'
+                title:this.title,//'正在保存...'
             }
         },
+        props:['show','title'],
         components: {
             Loading
         },
-        methods: {
-            showloading() {
-                this.isLoading = true;
+
+        //methods: {
+            //showloading() {
+                // this.isLoading = true;
                 // simulate AJAX
                 //setTimeout(() => {
                 //  this.isLoading = false
                 //},5000)
-            },
-            hidderloading(){
-                this.isLoading=false;
-            }
+          //  },
+            // hidderloading(){
+                // this.isLoading=false;
+            // }
             // onCancel() {
             //   console.log('User cancelled the loader.')
             // }
