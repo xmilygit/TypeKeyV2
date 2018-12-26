@@ -15,7 +15,7 @@
     <test></test>
     <myalert :show="alertshow" :alert-info="alertinfo" @hidden="alertshow=false"></myalert>
     <myloading :title="loadbacktitle" :show="showloadingback"></myloading>
-    <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false"></mytklessonlist>
+    <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false" @showloading="showloading"></mytklessonlist>
     <trainingrecordlist
       @hidden="trainmodalshow=false"
       :user="user"
@@ -381,7 +381,6 @@ export default {
       };
       this.alertshow = true;
     },
-
     //加载课程
     execlesson(index) {
       this.lessonname = this.lessonlist[index].lessonname;

@@ -119,9 +119,9 @@ export default {
       }
     }
   },
-  mounted() {
-    this.loadlessonlist();
-  },
+  // mounted() {
+  //   this.loadlessonlist();
+  // },
   methods: {
     showalert(message, variant, dismissSecs) {
       this.variant = variant || "success";
@@ -130,9 +130,10 @@ export default {
       this.dismissCountDown = dismissSecs;
     },
     showloading(message, show) {
-      this.loadingbacktitle = message || "正在保存...";
-      if (show) this.showloadingback = true;
-      else this.showloadingback = false;
+      this.$emit('showloading',message,show)
+      // this.loadingbacktitle = message || "正在保存...";
+      // if (show) this.showloadingback = true;
+      // else this.showloadingback = false;
     },
     clearform() {
       if (this.form.id) delete this.form["id"];
@@ -160,7 +161,7 @@ export default {
       //this.message = "正在删除数据...";
       //this.variant = "info";
       //this.dismissCountDown = 5;
-      this.showloadingback();
+      this.showloading();
       if (res.data.error) {
         this.showalert("删除记录出错：" + res.data.message, "danger", 10);
         // this.message = "删除记录出错：" + res.data.message;
