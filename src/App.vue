@@ -12,10 +12,16 @@
       :lessonlist="lessonlist"
       :logintip="logintip"
     ></mynavbar>
-    <myalert ref="alert_c"></myalert>
+    <test></test>
+    <myalert :show="alertshow" :alert-info="alertinfo" @hidden="alertshow=false"></myalert>
     <myloading :title="loadbacktitle" :show="showloadingback"></myloading>
     <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false"></mytklessonlist>
-    <trainingrecordlist @hidden="trainmodalshow=false" :user="user" :lessonname="lessonname" :show="trainmodalshow"></trainingrecordlist>
+    <trainingrecordlist
+      @hidden="trainmodalshow=false"
+      :user="user"
+      :lessonname="lessonname"
+      :show="trainmodalshow"
+    ></trainingrecordlist>
     <trainingranklist
       :user="user"
       :show="rankmodalshow"
@@ -109,6 +115,7 @@ import myalert from "./components/myalert.vue";
 import trainingrecordlist from "./components/trainingRecordList.vue";
 import mytklessonlist from "./components/tklessonlist.vue";
 import trainingranklist from "./components/trainingrankList.vue";
+import test from "./components/test.vue";
 
 import axios from "axios";
 var begin = 0;
@@ -135,10 +142,11 @@ export default {
       result: 0,
       modalshow: false,
       rankmodalshow: false,
-      trainmodalshow:false,
-      lessonmodalshow:false,
-      showloadingback:false,
-      loadbacktitle:"正在保存...",
+      trainmodalshow: false,
+      lessonmodalshow: false,
+      showloadingback: false,
+      alertshow: false,
+      loadbacktitle: "正在保存...",
       user: null,
       lessonname: "",
       lessonlist: null,
@@ -146,7 +154,8 @@ export default {
       logintip: {
         status: false,
         message: "default"
-      }
+      },
+      alertinfo: undefined,
     };
   },
   components: {
@@ -155,7 +164,8 @@ export default {
     myalert,
     trainingrecordlist,
     mytklessonlist,
-    trainingranklist
+    trainingranklist,
+    test
   },
   computed: {
     rightRate: function() {
@@ -359,30 +369,29 @@ export default {
     showloading(message, show) {
       message = message || "正在保存...";
       this.loadbacktitle = message;
-      if (show) this.showloadingback=true;
-      else this.showloadingback=false;
+      if (show) this.showloadingback = true;
+      else this.showloadingback = false;
     },
     //显示提示
     showalert(message, variant, dismissSecs) {
-      message = message || "保存成功！";
-      variant = variant || "success";
-      dismissSecs = dismissSecs || 10;
-      this.$refs.alert_c.message = message;
-      this.$refs.alert_c.variant = variant;
-      this.$refs.alert_c.dismissSecs = dismissSecs;
-      this.$refs.alert_c.showAlert();
+      this.alertinfo = {
+        variant: variant || "success",
+        dismissSecs: dismissSecs || 10,
+        message: message || "保存成功！",        
+      };
+      this.alertshow = true;
     },
 
     //加载课程
     execlesson(index) {
       this.lessonname = this.lessonlist[index].lessonname;
       this.showloading("正在加载课程数据...", true);
-      let self=this
+      let self = this;
       axios
         .get("/typekey/getlessonbyid?id=" + this.lessonlist[index]._id)
         .then(this.execinglesson)
         .catch(function(err) {
-          self.showloading()
+          self.showloading();
           self.showalert("系统错误！错误原因：" + err.message, "danger");
         });
     },
@@ -395,22 +404,22 @@ export default {
       }
       this.str = res.data.result.lessoncontent;
     },
-    
+
     //获取所有课程
     getlessonlist() {
-      this.showloading('正在加载数据...',true)
-      let self=this
+      this.showloading("正在加载数据...", true);
+      let self = this;
       axios
         .get("/typekey/getalltklesson?sort=-sq")
         .then(this.getlessonlist_cb)
         .catch(function(error) {
-          self.showloading()
+          self.showloading();
           self.showalert("加载课程失败！错误原因：" + error, "danger");
         });
     },
     //获取所有课程回调
     getlessonlist_cb(res) {
-      this.showloading()
+      this.showloading();
       if (res.data.error) {
         console.log(res.data.message);
         retrun;
@@ -459,12 +468,12 @@ export default {
       let user = JSON.parse(sessionStorage.getItem("user"));
       let self = this;
       if (user) {
-        this.showloading('加载数据...',true)
+        this.showloading("加载数据...", true);
         axios
           .post("/sys/validsignin", { token: user.token })
           .then(this.whenrefresh_cb)
           .catch(function(error) {
-            self.showloading()
+            self.showloading();
             self.user = null;
             sessionStorage.removeItem("user");
           });
@@ -472,7 +481,7 @@ export default {
     },
     //刷新页面后获取session中的用户信息回调
     whenrefresh_cb(res) {
-      this.showloading()
+      this.showloading();
       if (res.data.signin) {
         this.user = JSON.parse(sessionStorage.getItem("user"));
         return;

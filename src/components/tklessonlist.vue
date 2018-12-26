@@ -70,7 +70,9 @@
           <b-btn @click.stop="row.toggleDetails">详细</b-btn>
         </b-button-group>
       </template>
-      <template slot="row-details" slot-scope="row"><span style="word-wrap:break-word;word-break:break-all;">{{row.item.lessoncontent}}</span></template>
+      <template slot="row-details" slot-scope="row">
+        <span style="word-wrap:break-word;word-break:break-all;">{{row.item.lessoncontent}}</span>
+      </template>
     </b-table>
     <b-pagination align="center" :total-rows="totalrows" v-model="currentPage" :per-page="perPage"></b-pagination>
   </b-modal>
@@ -78,9 +80,12 @@
 
 <script>
 import axios from "axios";
+
 export default {
   data() {
     return {
+      loadingbacktitle: "正在保存...",
+      showloadingback: false,
       showadddlesson: false,
       variant: "warning",
       dismissSecs: 10,
@@ -102,22 +107,33 @@ export default {
       }
     };
   },
-  props:['show','user'],
+  props: ["show", "user"],
   watch: {
     currentPage: function() {
       this.loadlessonlist();
     },
     show: function(val, oldval) {
-      if (val){
-        this.modalshow=val;
+      if (val) {
+        this.modalshow = val;
         this.loadlessonlist();
-      } 
+      }
     }
   },
   mounted() {
     this.loadlessonlist();
   },
   methods: {
+    showalert(message, variant, dismissSecs) {
+      this.variant = variant || "success";
+      this.dismiss = dismissSecs || 10;
+      this.message = message || "保存成功！";
+      this.dismissCountDown = dismissSecs;
+    },
+    showloading(message, show) {
+      this.loadingbacktitle = message || "正在保存...";
+      if (show) this.showloadingback = true;
+      else this.showloadingback = false;
+    },
     clearform() {
       if (this.form.id) delete this.form["id"];
       this.form.lessonname = "";
@@ -128,58 +144,66 @@ export default {
       this.dismissCountDown = dismissCountDown;
     },
     del(index, item) {
+      this.showloading("正在删除...", true);
       let self = this;
       axios
         .get("/typekey/deletelesson?id=" + item._id)
         .then(this.deletelesson)
         .catch(function(err) {
-          self.message = "系统出错：" + err.message;
-          self.variant = "danger";
-          self.dismissCountDown = 10;
+          self.showalert("系统出错：" + err.message, "danger", 10);
+          // self.message =
+          // self.variant = "danger";
+          // self.dismissCountDown = 10;
         });
     },
     deletelesson(res) {
-      this.message = "正在删除数据...";
-      this.variant = "info";
-      this.dismissCountDown = 5;
+      //this.message = "正在删除数据...";
+      //this.variant = "info";
+      //this.dismissCountDown = 5;
+      this.showloadingback();
       if (res.data.error) {
-        this.message = "删除记录出错：" + res.data.message;
-        this.variant = "danger";
-        this.dismissCountDown = 10;
+        this.showalert("删除记录出错：" + res.data.message, "danger", 10);
+        // this.message = "删除记录出错：" + res.data.message;
+        // this.variant = "danger";
+        // this.dismissCountDown = 10;
         return;
       }
-      this.dismissCountDown = 0;
+      // this.dismissCountDown = 0;
       this.loadlessonlist();
     },
     loadlessonlist() {
-      this.message = "正在加载数据...";
-      this.variant = "info";
-      this.dismissCountDown = 5;
+      // this.message = "正在加载数据...";
+      // this.variant = "info";
+      // this.dismissCountDown = 5;
+      this.showloading("正在加载数据...", true);
       let self = this;
       axios
         .get(
           "/typekey/getalltklessonpaging?currentpage=" +
             this.currentPage +
             "&keyword=" +
-            this.keyword+
-            "&sort="+
+            this.keyword +
+            "&sort=" +
             "-sq"
         )
         .then(this.showlesson)
         .catch(function(err) {
-          self.message = "系统出错：" + err.message;
-          self.variant = "danger";
-          self.dismissCountDown = 10;
+          self.showalert("系统出错：" + err.message, "danger", 10);
+          // self.message = "系统出错：" + err.message;
+          // self.variant = "danger";
+          // self.dismissCountDown = 10;
         });
     },
     showlesson(res) {
+      this.showloading();
       if (res.data.error) {
-        this.message = "加载数据出错：" + res.data.message;
-        this.variant = "danger";
-        this.dismissCountDown = 10;
+        this.showalert("加载数据出错：" + res.data.message, "danger", 10);
+        // this.message = "加载数据出错：" + res.data.message;
+        // this.variant = "danger";
+        // this.dismissCountDown = 10;
         return;
       }
-      this.dismissCountDown = 0;
+      //this.dismissCountDown = 0;
       //console.log(res.data.pagingdata)
       this.totalrows = res.data.pagingdata.count;
       this.items = res.data.pagingdata.recordset;
@@ -187,10 +211,10 @@ export default {
     savelesson(evt) {
       evt.preventDefault();
       let self = this;
-      this.message = "正在保存...";
-      this.variant = "info";
-      this.dismissCountDown = 10;
-
+      // this.message = "正在保存...";
+      // this.variant = "info";
+      // this.dismissCountDown = 10;
+      this.showloading("正在保存...", true);
       if (this.form.id) {
         axios
           .post("/typekey/edittklesson", {
@@ -198,11 +222,12 @@ export default {
           })
           .then(this.editinglesson)
           .catch(function(err) {
+            self.showalert("系统出错：" + err.message, "danger", 10);
             //self.$emit("displayLoading");
             //系统出错处理
-            self.message = "系统错误：" + err.message;
-            self.variant = "danger";
-            self.dismissCountDown = 10;
+            // self.message = "系统错误：" + err.message;
+            // self.variant = "danger";
+            // self.dismissCountDown = 10;
           });
         return;
       }
@@ -211,44 +236,54 @@ export default {
         .post("/typekey/savetklesson", { lessoninfo: this.form })
         .then(this.saveinglesson)
         .catch(function(err) {
+          self.showalert("系统出错：" + err.message, "danger", 10);
           //self.$emit("displayLoading");
           //系统出错处理
-          self.message = "系统错误1：" + err.message;
-          self.variant = "danger";
-          self.dismissCountDown = 10;
+          // self.message = "系统错误1：" + err.message;
+          // self.variant = "danger";
+          // self.dismissCountDown = 10;
         });
     },
     editinglesson(res) {
+      this.showloading();
       if (res.data.error) {
-        this.message = "保存失败:" + res.data.message;
-        this.variant = "danger";
-        this.dismissCountDown = 10;
+        this.showalert("保存失败：" + res.data.message, "danger", 10);
+        // this.message = "保存失败:" + res.data.message;
+        // this.variant = "danger";
+        // this.dismissCountDown = 10;
         return;
       }
       this.showadddlesson = false;
-      this.message = "保存成功";
-      this.variant = "success";
-      this.dismissCountDown = 5;
-      setTimeout(() => {
-        this.form.lessonname = "";
-        this.form.lessoncontent = "";
-        this.loadlessonlist();
-      }, this.dismissCountDown * 1000);
+      // this.message = "保存成功";
+      // this.variant = "success";
+      // this.dismissCountDown = 5;
+      this.showalert("保存成功", "success", 5);
+      this.form.lessonname = "";
+      this.form.lessoncontent = "";
+      this.loadlessonlist();
+      // setTimeout(() => {
+      //   this.form.lessonname = "";
+      //   this.form.lessoncontent = "";
+      //   this.loadlessonlist();
+      // }, this.dismissCountDown * 1000);
     },
     saveinglesson(res) {
       //self.$emit("displayLoading");
+      this.showloading();
       if (res.data.error) {
         //出错处理
-        this.message = "保存失败：" + res.data.message;
-        this.variant = "danger";
-        this.dismissCountDown = 10;
+        // this.message = "保存失败：" + res.data.message;
+        // this.variant = "danger";
+        // this.dismissCountDown = 10;
+        this.showalert("保存失败：" + res.data.message, "danger", 10);
         return;
       }
       //正常处理
       this.showadddlesson = false;
-      this.message = "保存成功";
-      this.variant = "success";
-      this.dismissCountDown = 5;
+      this.showalert("保存成功", "success", 5);
+      // this.message = "保存成功";
+      // this.variant = "success";
+      // this.dismissCountDown = 5;
       this.form.lessonname = "";
       this.form.lessoncontent = "";
       this.loadlessonlist();

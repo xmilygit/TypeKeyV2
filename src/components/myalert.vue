@@ -1,13 +1,13 @@
 <template>
     <b-alert :show="dismissCountDown"
              dismissible
-             :variant="variant"
+             :variant="alertInfo.variant"
              @dismissed="dismissCountDown=0"
              @dismiss-count-down="countDownChanged"
              >
-      <p>{{message}} ({{dismissCountDown}})</p>
-      <b-progress variant="warning"
-                  :max="dismissSecs"
+      <p>{{alertInfo.message}} ({{dismissCountDown}})</p>
+      <b-progress :variant="alertInfo.variant"
+                  :max="alertInfo.dismissSecs"
                   :value="dismissCountDown"
                   height="2px">
       </b-progress>
@@ -18,18 +18,37 @@
 export default {
   data() {
     return {
-      variant:"warning",
-      dismissSecs: 10,
       dismissCountDown: 0,
-      message:''
     };
+  },
+  props:{
+    alertInfo:{
+      type:Object,
+      default:()=>{
+        return {
+          variant:"warning",
+          dismissSecs: 10,
+          message:'保存成功！'
+        }
+      }
+    },
+    show:{
+      type:Boolean
+    },
+  },
+  watch:{
+    show:function(val,oldval){
+      if(val)
+      this.dismissCountDown=this.alertInfo.dismissSecs
+    }
   },
   methods: {
     countDownChanged(dismissCountDown) {
       this.dismissCountDown = dismissCountDown;
     },
-    showAlert() {
-      this.dismissCountDown = this.dismissSecs;
+    dismissed(){
+      this.dismissCountDown=0;
+      this.$emit('hidden');
     }
   }
 };
