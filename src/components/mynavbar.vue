@@ -37,7 +37,7 @@
           <b-button size="sm" type="submit" class="my-2 my-sm-0" id="loginbutton">
             <img
               v-show="showsigninloading"
-              src="../assets/loading.gif"
+              src="src/assets/loading.gif"
               style="width:20px;height:20px;margin-right:10px;"
             >登录
           </b-button>

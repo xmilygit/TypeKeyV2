@@ -12,7 +12,6 @@
       :lessonlist="lessonlist"
       :logintip="logintip"
     ></mynavbar>
-    <test></test>
     <myalert :show="alertshow" :alert-info="alertinfo" @hidden="alertshow=false"></myalert>
     <myloading :title="loadbacktitle" :show="showloadingback"></myloading>
     <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false" @showloading="showloading"></mytklessonlist>
@@ -86,7 +85,7 @@
       </b-row>
       <b-row>
         <b-col>
-          <img src="./assets/kp.jpg" style="margin-top:30px;">
+          <img src="src/assets/kp.jpg" style="margin-top:30px;">
         </b-col>
       </b-row>
       <b-row>
