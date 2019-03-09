@@ -38,7 +38,8 @@
       :per-page="perPage"
       :current-page="currentPage"
     >
-      <template slot="index" slot-scope="data">{{data.index + 1}}</template>
+    <!-- <template slot="index" slot-scope="data">{{data.index + 1}}</template> -->
+    <template slot="index" slot-scope="data">{{(currentPage-1)*perPage+data.index + 1}}</template>
     </b-table>
     <b-pagination align="center" :total-rows="totalrows" v-model="currentPage" :per-page="perPage"></b-pagination>
   </b-modal>
@@ -56,7 +57,10 @@ export default {
       currentPage: 1,
       modalshow: this.show,
       fields: [
-        { key: "index", label: "名次" },
+        { 
+          key: "index", 
+          label: "名次"
+        },
         // { key: "lesson", label: "课程名称", sortable: true },
         { key: "username", label: "姓名" },
         { key: "class", label: "班级" },
@@ -131,7 +135,7 @@ export default {
       }
 
       axios
-        .get(querypath)
+        .get(encodeURI(querypath))
         .then(this.gettkrecordrank)
         .catch(function(err) {
           //self.showloading();
@@ -139,7 +143,7 @@ export default {
         });
       if (rankpath) {
         axios
-          .get(rankpath)
+          .get(encodeURI(rankpath))
           .then(this.showuserrank)
           .catch(function(err) {
             //self.showalert(err.message, "danger");

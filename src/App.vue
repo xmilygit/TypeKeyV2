@@ -14,7 +14,12 @@
     ></mynavbar>
     <myalert :show="alertshow" :alert-info="alertinfo" @hidden="alertshow=false"></myalert>
     <myloading :title="loadbacktitle" :show="showloadingback"></myloading>
-    <mytklessonlist :show="lessonmodalshow" :user="user" @hidden="lessonmodalshow=false" @showloading="showloading"></mytklessonlist>
+    <mytklessonlist
+      :show="lessonmodalshow"
+      :user="user"
+      @hidden="lessonmodalshow=false"
+      @showloading="showloading"
+    ></mytklessonlist>
     <trainingrecordlist
       @hidden="trainmodalshow=false"
       :user="user"
@@ -154,7 +159,7 @@ export default {
         status: false,
         message: "default"
       },
-      alertinfo: undefined,
+      alertinfo: undefined
     };
   },
   components: {
@@ -263,10 +268,15 @@ export default {
             "你已经连续出错，请检查指法是否按要求放在基本键上，请认真练习！！！"
           );
       }
+      // debugger;
       if (this.currentKeyPosition < 11) {
+        // let a1=targetKeys[this.currentKeyPosition + 1].innerText
+          // let a2=targetKeys[this.currentKeyPosition + 1].innerText.replace(/\s/gi)
         if (
           targetKeys[this.currentKeyPosition + 1].innerText.replace(/\s/gi) ==
-          ""
+            "" ||
+          targetKeys[this.currentKeyPosition + 1].innerText.replace(/\s/gi) ==
+            "undefined"
         ) {
           time_begin = false;
           window.removeEventListener("keypress", this.whenKeyPress);
@@ -376,7 +386,7 @@ export default {
       this.alertinfo = {
         variant: variant || "success",
         dismissSecs: dismissSecs || 10,
-        message: message || "保存成功！",        
+        message: message || "保存成功！"
       };
       this.alertshow = true;
     },

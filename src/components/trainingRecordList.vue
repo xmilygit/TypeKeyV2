@@ -56,11 +56,12 @@ export default {
       //this.showloading("正在加载数据...", true);
       axios
         .get(
+          encodeURI(
           "/typekey/gettkrecord?lesson=" +
             this.lessonname +
             "&token=" +
             this.user.token
-        )
+        ))
         .then(this.gettraningrecord_cb)
         .catch(function(err) {
           //self.showloading();
